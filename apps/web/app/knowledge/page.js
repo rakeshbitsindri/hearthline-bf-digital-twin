@@ -643,11 +643,15 @@ export default function KnowledgeAndPlantPage() {
       fetch(`${API}/industrial-data/summary?sample_limit=25`).then((r) => r.json()),
     ])
       .then(([kbBody, plantBody]) => {
-        setKb(kbBody);
-        setPlantData(plantBody);
-        if (kbBody?.documents?.length && !kbBody.documents.some((d) => d.slug === "01-parameter-catalog")) {
-          setSelectedSlug(kbBody.documents[0].slug);
+        const plantOk = plantBody && plantBody.plant_reference && Array.isArray(plantBody.tag_profiles);
+        const kbOk = kbBody && Array.isArray(kbBody.documents);
+        if (kbOk) {
+          setKb(kbBody);
+          if (kbBody.documents.length && !kbBody.documents.some((d) => d.slug === "01-parameter-catalog")) {
+            setSelectedSlug(kbBody.documents[0].slug);
+          }
         }
+        if (plantOk) setPlantData(plantBody);
       })
       .catch(() => {});
   }, []);
@@ -682,11 +686,18 @@ export default function KnowledgeAndPlantPage() {
     );
   }, [plantData, tagFilter]);
 
-  if (!kb || !plantData) {
+  if (!kb) {
     return <p className="muted" style={{ padding: "2rem" }}>Loading interactive metallurgical knowledge studio &amp; EVRAZ ZSMK plant archive...</p>;
   }
 
-  const pr = plantData.plant_reference;
+  const pr = plantData?.plant_reference || {
+    hourly_rows: 0,
+    cast_silicon_analyses: 0,
+    furnace: "EVRAZ ZSMK public reference",
+    years: "2013-2016",
+    licence: "CC BY 4.0",
+  };
+  const plantReady = Boolean(plantData?.plant_reference);
 
   return (
     <section className={`knowledge-hub-shell ${fullScreenDoc ? "kb-fullscreen-active" : ""}`}>
@@ -811,7 +822,16 @@ export default function KnowledgeAndPlantPage() {
         </div>
       )}
 
-      {tab === "plant" && (
+      {tab === "plant" && !plantReady && (
+        <div className="card" style={{ padding: "1.25rem" }}>
+          <h3>Plant archive still loading</h3>
+          <p className="muted" style={{ margin: 0 }}>
+            The EVRAZ industrial-data summary is not in the static bundle yet (or returned an error payload). Knowledge documents remain available in the library tab.
+          </p>
+        </div>
+      )}
+
+      {tab === "plant" && plantReady && (
         <div className="kb-plant-explorer">
           <div className="plant-provenance-banner">
             <div>

@@ -250,7 +250,13 @@ function resolveEmbeddedApiRequest(urlStr, options = {}) {
   if (route === "/model-card") return { status: 200, data: b.model_card };
   if (route === "/predict/silicon") return { status: 200, data: b.predict_si };
   if (route === "/knowledge") return { status: 200, data: b.knowledge };
-  if (route === "/industrial-data/summary") return { status: 200, data: b.industrial_data };
+  if (route === "/industrial-data/summary") {
+    const ind = b.industrial_data;
+    if (!ind || !ind.plant_reference || !Array.isArray(ind.tag_profiles)) {
+      return { status: 503, data: { detail: "Embedded industrial-data summary missing plant_reference." } };
+    }
+    return { status: 200, data: ind };
+  }
   return null;
 }
 
