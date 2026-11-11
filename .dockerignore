@@ -1,0 +1,11 @@
+# Build context ignore for the single-image production build.
+**/node_modules
+**/.next
+**/__pycache__
+**/*.pyc
+.git
+data/cache
+data/users
+apps/api/.pytest_cache
+*.log
+/tmp

@@ -1,0 +1,13 @@
+# Render blueprint: one Docker web service that serves the UI and the engine.
+# Free instances sleep after inactivity and cold start in under a minute. For an
+# always-warm ML demo, Hugging Face Spaces (see deploy/README.md) is the better free host.
+services:
+  - type: web
+    name: hearthline-bf-twin
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: "7860"
+    healthCheckPath: /

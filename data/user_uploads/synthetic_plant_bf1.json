@@ -1,0 +1,12 @@
+{
+  "id": "synthetic-plant-bf1",
+  "name": "Synthetic Full-Sensor Plant (with Tonnes, PCI, Coke, CO, HMT)",
+  "origin": "synthetic",
+  "campaign": "synthetic-validation-2400h",
+  "timezone": "UTC",
+  "live": false,
+  "rows": 2400,
+  "has_production": true,
+  "has_co": true,
+  "description": "Synthetic validation dataset with 32 columns including Production (t/h), PCI, CokeRate, Steam, CO, and HMT to test full user-data learning."
+}
