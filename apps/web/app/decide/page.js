@@ -24,10 +24,11 @@ export default function Decide() {
             body: JSON.stringify({ t: furnace.to, target_production: 4650, target_si: 0.45, max_dp: 1.52 }),
           }).then((r) => r.json()),
         ]);
-        setCard(model);
-        setForecast(prediction);
-        setOptResult(opt);
-      });
+        if (model && model.persistence_rmse != null) setCard(model);
+        if (prediction && prediction.point != null && prediction.low != null) setForecast(prediction);
+        if (opt && !opt.detail) setOptResult(opt);
+      })
+      .catch(() => {});
   }, []);
 
   async function handleOptimize(e) {
@@ -47,7 +48,15 @@ export default function Decide() {
     setOptResult(res);
   }
 
-  if (!card || !forecast) return <p className="muted">Loading walk-forward model card and optimizer…</p>;
+  if (!card || !forecast) {
+    return (
+      <p className="muted">
+        Loading walk-forward model card and optimizer…
+        <br />
+        <small>If this stays blank on GitHub Pages, hard-refresh so the embedded silicon forecast bundle can load.</small>
+      </p>
+    );
+  }
 
   return (
     <section>

@@ -200,11 +200,23 @@ function resolveEmbeddedApiRequest(urlStr, options = {}) {
   if (route === "/datasets/select") return { status: 200, data: { status: "ok", active: b.datasets?.active, rows_trained: 28032 } };
   if (route === "/playback") return { status: 200, data: b.playback };
   if (route === "/sensitivity") return { status: 200, data: b.sensitivity };
-  if (route === "/shortfalls") return { status: 200, data: b.shortfalls };
+  if (route === "/shortfalls") {
+    const tp = Number(params.get("target_production") || 4500);
+    const table = b.shortfalls_by_target;
+    if (table && typeof table === "object") {
+      const nearest = [3800, 4200, 4500, 4850].reduce((x, y) => (Math.abs(y - tp) < Math.abs(x - tp) ? y : x));
+      const hit = table[String(nearest)] || table["4500"] || b.shortfalls;
+      if (hit) return { status: 200, data: hit };
+    }
+    if (b.shortfalls) return { status: 200, data: b.shortfalls };
+    return { status: 503, data: { detail: "Embedded shortfalls payload missing." } };
+  }
   if (route === "/golden-ranges") {
     const tp = Number(params.get("target_production") || 4500);
-    const nearest = [3800, 4000, 4300, 4500, 4850].reduce((x, y) => (Math.abs(y - tp) < Math.abs(x - tp) ? y : x));
-    return { status: 200, data: b.golden_ranges?.[String(nearest)] || b.golden_ranges?.["4500"] };
+    const nearest = [3800, 4200, 4500, 4850].reduce((x, y) => (Math.abs(y - tp) < Math.abs(x - tp) ? y : x));
+    const hit = b.golden_ranges?.[String(nearest)] || b.golden_ranges?.["4500"];
+    if (!hit) return { status: 503, data: { detail: "Embedded golden-ranges payload missing." } };
+    return { status: 200, data: hit };
   }
   if (route === "/simulate") return { status: 200, data: buildEmbeddedClientSimulate(b, body) };
   if (route === "/optimize") return { status: 200, data: b.baseline_opt };
@@ -245,10 +257,22 @@ function resolveEmbeddedApiRequest(urlStr, options = {}) {
     }
     return { status: 200, data: { op: "read", connected: false, detail: "Read-only DMZ adapter active; plant_write_capable=false." } };
   }
-  if (route === "/diagnose") return { status: 200, data: b.diagnose };
-  if (route === "/twin") return { status: 200, data: b.twin };
-  if (route === "/model-card") return { status: 200, data: b.model_card };
-  if (route === "/predict/silicon") return { status: 200, data: b.predict_si };
+  if (route === "/diagnose") {
+    if (!b.diagnose) return { status: 503, data: { detail: "Embedded diagnose payload missing." } };
+    return { status: 200, data: b.diagnose };
+  }
+  if (route === "/twin") {
+    if (!b.twin) return { status: 503, data: { detail: "Embedded twin payload missing." } };
+    return { status: 200, data: b.twin };
+  }
+  if (route === "/model-card") {
+    if (!b.model_card) return { status: 503, data: { detail: "Embedded model-card payload missing." } };
+    return { status: 200, data: b.model_card };
+  }
+  if (route === "/predict/silicon") {
+    if (!b.predict_si) return { status: 503, data: { detail: "Embedded predict/silicon payload missing." } };
+    return { status: 200, data: b.predict_si };
+  }
   if (route === "/knowledge") return { status: 200, data: b.knowledge };
   if (route === "/industrial-data/summary") {
     const ind = b.industrial_data;
@@ -279,9 +303,15 @@ if (typeof window !== "undefined" && !window.__HEARTHLINE_FETCH_PATCHED__) {
     }
     // On github.io (or if local proxy unavailable), try live Cloudflare HTTPS tunnel if non-GET or if online, then instant embedded bundle
     const resolved = resolveEmbeddedApiRequest(urlStr, init);
-    if (resolved) {
+    if (resolved && resolved.data !== undefined && resolved.data !== null) {
       return new Response(JSON.stringify(resolved.data), {
         status: resolved.status,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (isGithubIo) {
+      return new Response(JSON.stringify({ detail: `No embedded payload for ${urlStr}` }), {
+        status: 503,
         headers: { "Content-Type": "application/json" },
       });
     }

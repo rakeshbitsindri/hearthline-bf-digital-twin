@@ -22,12 +22,13 @@ export default function Investigate() {
           fetch(`${API}/shortfalls?target_production=4500&limit=12`).then((r) => r.json()),
           fetch(`${API}/golden-ranges?target_production=4500`).then((r) => r.json()),
         ]);
-        setTwin(state);
-        setGates(diagnosis.gates || []);
-        setSensitivity(sens);
-        setShortfalls(sf);
-        setGoldenRanges(gr);
-      });
+        if (state?.status === "ok" || state?.measured || state?.t) setTwin(state);
+        setGates(diagnosis?.gates || []);
+        if (sens?.present_inputs || sens?.correlations) setSensitivity(sens);
+        if (sf && !sf.detail) setShortfalls(sf);
+        if (gr?.ranges) setGoldenRanges(gr);
+      })
+      .catch(() => {});
   }, []);
 
   async function refreshTarget(newTarget) {
@@ -40,7 +41,15 @@ export default function Investigate() {
     setGoldenRanges(gr);
   }
 
-  if (!twin || !sensitivity) return <p className="muted">Loading cross-parameter sensitivity matrix & probes…</p>;
+  if (!twin || !sensitivity) {
+    return (
+      <p className="muted">
+        Loading cross-parameter sensitivity matrix &amp; probes…
+        <br />
+        <small>If this stays blank on GitHub Pages, hard-refresh so the embedded twin + sensitivity bundle can load.</small>
+      </p>
+    );
+  }
 
   const inputs = sensitivity.present_inputs || [];
   const keyOutputs = ["Si", "dP", "dPu", "dPl", "CO2", "H2", "Ph", "Tp1", "Tp4", "Tp8"].filter(
