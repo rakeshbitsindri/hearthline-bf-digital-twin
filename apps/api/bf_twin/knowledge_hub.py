@@ -239,6 +239,46 @@ def list_knowledge_articles(query: Optional[str] = None) -> dict[str, Any]:
             }
         )
 
+    # 4. Patent drafting package (markdown bodies; PDFs live beside them in patent/)
+    patent_dir = ROOT / "patent"
+    patent_files = [
+        "README.md",
+        "INDEPENDENT_VALIDATION_AUTO.md",
+        "US_PROVISIONAL_SPECIFICATION_DRAFT.md",
+        "INDIA_COMPLETE_SPECIFICATION_FORM2_DRAFT.md",
+        "US_CLAIMS_DRAFT.md",
+        "INDIA_CLAIMS_DRAFT.md",
+        "PRIOR_ART_VALIDATION_MATRIX.md",
+        "CLAIM_SUPPORT_AND_ENABLEMENT_MATRIX.md",
+        "FILING_CHECKLIST_US.md",
+        "FILING_CHECKLIST_INDIA.md",
+        "INVENTOR_APPLICANT_INTAKE.md",
+    ]
+    if patent_dir.exists():
+        for fname in patent_files:
+            p = patent_dir / fname
+            if not p.exists():
+                continue
+            slug = f"patent-{p.stem.lower().replace('_', '-')}"
+            text = p.read_text(encoding="utf-8", errors="replace")
+            title, headings = _extract_title_and_headings(text, p.stem)
+            docs.append(
+                {
+                    "slug": slug,
+                    "source_group": "patent_package",
+                    "category": "Patent Drafting Package (Technical — Not Legal Advice)",
+                    "filename": f"patent/{fname}",
+                    "title": title,
+                    "headings": headings,
+                    "word_count": len(text.split()),
+                    "evidence_counts": _count_evidence_tags(text),
+                    "excerpt": " ".join(
+                        [ln.strip() for ln in text.splitlines() if ln.strip() and not ln.strip().startswith("#")][:3]
+                    )[:280],
+                    "content": text,
+                }
+            )
+
     if query and query.strip():
         q = query.strip().lower()
         docs = [

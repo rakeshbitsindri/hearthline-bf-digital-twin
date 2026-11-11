@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Hearthline Patent Drawings</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#ddd;font-family:Arial,sans-serif;color:#000}
+    .sheet{width:210mm;height:297mm;margin:8mm auto;background:#fff;padding:12mm;page-break-after:always;position:relative}
+    .sheet h1{text-align:center;font-size:16px;margin:0 0 6mm;font-weight:normal}.sheet svg{width:100%;height:245mm}
+    .fig{text-align:center;font-size:14px;font-weight:bold;position:absolute;bottom:8mm;left:0;right:0}
+    .box{fill:#fff;stroke:#000;stroke-width:1.5}.dash{fill:#fff;stroke:#000;stroke-width:1.5;stroke-dasharray:7 4}
+    .line{fill:none;stroke:#000;stroke-width:1.5}.thick{fill:none;stroke:#000;stroke-width:2.5}
+    .txt{font:13px Arial,sans-serif}.small{font:11px Arial,sans-serif}.num{font:bold 13px Arial,sans-serif}
+    @media print{body{background:#fff}.sheet{margin:0;box-shadow:none}}
+  </style>
+</head>
+<body>
+  <!-- FIG. 1: Overall architecture -->
+  <section class="sheet">
+    <h1>LAG-AWARE ADVISORY DIGITAL TWIN FOR DIAGNOSING BLAST-FURNACE PRODUCTION SHORTFALLS</h1>
+    <svg viewBox="0 0 760 1000" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#000"/></marker></defs>
+      <path class="thick" d="M72 80 L142 80 L170 190 L170 480 L140 570 L140 720 L74 720 L74 570 L44 480 L44 190 Z"/>
+      <text x="86" y="370" class="txt" text-anchor="middle">BLAST</text><text x="86" y="390" class="txt" text-anchor="middle">FURNACE</text><text x="32" y="760" class="num">102</text>
+      <circle cx="30" cy="220" r="6"/><circle cx="30" cy="320" r="6"/><circle cx="30" cy="420" r="6"/><circle cx="184" cy="250" r="6"/><circle cx="184" cy="350" r="6"/><text x="20" y="200" class="num">104</text>
+      <rect x="225" y="80" width="170" height="70" class="box"/><text x="310" y="108" class="txt" text-anchor="middle">READ-ONLY HISTORIAN</text><text x="310" y="128" class="txt" text-anchor="middle">INTERFACE</text><text x="405" y="145" class="num">106</text>
+      <rect x="455" y="80" width="180" height="70" class="box"/><text x="545" y="108" class="txt" text-anchor="middle">TIME, SOURCE &amp;</text><text x="545" y="128" class="txt" text-anchor="middle">PROVENANCE</text><text x="645" y="145" class="num">108</text>
+      <rect x="225" y="195" width="170" height="70" class="box"/><text x="310" y="223" class="txt" text-anchor="middle">CAUSAL ROLE</text><text x="310" y="243" class="txt" text-anchor="middle">REGISTRY</text><text x="405" y="260" class="num">110</text>
+      <rect x="455" y="195" width="180" height="70" class="box"/><text x="545" y="223" class="txt" text-anchor="middle">OPERATING REGIME</text><text x="545" y="243" class="txt" text-anchor="middle">GATE</text><text x="645" y="260" class="num">112</text>
+      <rect x="225" y="310" width="170" height="70" class="box"/><text x="310" y="338" class="txt" text-anchor="middle">TARGET-CONDITIONED</text><text x="310" y="358" class="txt" text-anchor="middle">BAND GENERATOR</text><text x="405" y="375" class="num">114</text>
+      <rect x="455" y="310" width="180" height="70" class="box"/><text x="545" y="338" class="txt" text-anchor="middle">LAG CONVOLUTION</text><text x="545" y="358" class="txt" text-anchor="middle">ENGINE</text><text x="645" y="375" class="num">116</text>
+      <rect x="225" y="425" width="170" height="70" class="box"/><text x="310" y="453" class="txt" text-anchor="middle">REDUCED-ORDER</text><text x="310" y="473" class="txt" text-anchor="middle">PHYSICS</text><text x="405" y="490" class="num">118</text>
+      <rect x="455" y="425" width="180" height="70" class="box"/><text x="545" y="449" class="txt" text-anchor="middle">FORECAST / DECISION</text><text x="545" y="469" class="txt" text-anchor="middle">RESIDUALS</text><text x="645" y="486" class="num">120/122</text>
+      <rect x="225" y="540" width="170" height="70" class="box"/><text x="310" y="568" class="txt" text-anchor="middle">SENSOR-ANCHOR</text><text x="310" y="588" class="txt" text-anchor="middle">RECONCILER</text><text x="405" y="605" class="num">124</text>
+      <rect x="455" y="540" width="180" height="70" class="box"/><text x="545" y="568" class="txt" text-anchor="middle">SHORTFALL</text><text x="545" y="588" class="txt" text-anchor="middle">ATTRIBUTION</text><text x="645" y="605" class="num">126</text>
+      <rect x="225" y="655" width="170" height="70" class="box"/><text x="310" y="683" class="txt" text-anchor="middle">DENSITY ENVELOPE</text><text x="310" y="703" class="txt" text-anchor="middle">&amp; TRUST REGION</text><text x="405" y="720" class="num">128</text>
+      <rect x="455" y="655" width="180" height="70" class="box"/><text x="545" y="683" class="txt" text-anchor="middle">PHYSICAL CEILING</text><text x="545" y="703" class="txt" text-anchor="middle">ARBITER</text><text x="645" y="720" class="num">130</text>
+      <rect x="225" y="780" width="170" height="70" class="box"/><text x="310" y="808" class="txt" text-anchor="middle">OPERATOR ADVISORY</text><text x="310" y="828" class="txt" text-anchor="middle">INTERFACE</text><text x="405" y="845" class="num">132</text>
+      <rect x="455" y="780" width="180" height="70" class="box"/><text x="545" y="808" class="txt" text-anchor="middle">MoC DOSSIER /</text><text x="545" y="828" class="txt" text-anchor="middle">AUDIT LEDGER</text><text x="645" y="845" class="num">134/136</text>
+      <path class="line" marker-end="url(#a1)" d="M190 280 L225 115"/><path class="line" marker-end="url(#a1)" d="M395 115 L455 115"/>
+      <path class="line" marker-end="url(#a1)" d="M545 150 L545 195"/><path class="line" marker-end="url(#a1)" d="M455 230 L395 230"/>
+      <path class="line" marker-end="url(#a1)" d="M310 265 L310 310"/><path class="line" marker-end="url(#a1)" d="M395 345 L455 345"/>
+      <path class="line" marker-end="url(#a1)" d="M545 380 L545 425"/><path class="line" marker-end="url(#a1)" d="M455 460 L395 460"/>
+      <path class="line" marker-end="url(#a1)" d="M310 495 L310 540"/><path class="line" marker-end="url(#a1)" d="M395 575 L455 575"/>
+      <path class="line" marker-end="url(#a1)" d="M545 610 L545 655"/><path class="line" marker-end="url(#a1)" d="M455 690 L395 690"/>
+      <path class="line" marker-end="url(#a1)" d="M310 725 L310 780"/><path class="line" marker-end="url(#a1)" d="M545 725 L545 780"/>
+    </svg>
+    <div class="fig">FIG. 1</div>
+  </section>
+
+  <!-- FIG. 2: Method flow -->
+  <section class="sheet">
+    <h1>SHORTFALL-DIAGNOSIS METHOD</h1>
+    <svg viewBox="0 0 760 1000" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"/></marker></defs>
+      <g class="txt" text-anchor="middle">
+        <rect x="210" y="40" width="340" height="62" rx="24" class="box"/><text x="380" y="68">RECEIVE READ-ONLY FURNACE RECORDS</text><text x="380" y="88" class="num">202</text>
+        <rect x="210" y="140" width="340" height="62" class="box"/><text x="380" y="168">ASSIGN MUTUALLY EXCLUSIVE CAUSAL ROLES</text><text x="380" y="188" class="num">204</text>
+        <rect x="210" y="240" width="340" height="62" class="box"/><text x="380" y="268">FORM TARGET-CONDITIONED OPERATING BANDS</text><text x="380" y="288" class="num">206</text>
+        <rect x="210" y="340" width="340" height="62" class="box"/><text x="380" y="368">COMPUTE TAG-SPECIFIC LAG-ACTIVE VALUES</text><text x="380" y="388" class="num">208</text>
+        <polygon points="380,440 550,505 380,570 210,505" class="box"/><text x="380" y="495">PRODUCTION SHORTFALL WITH</text><text x="380" y="515">MANIPULATED INPUTS IN BAND?</text><text x="380" y="542" class="num">210</text>
+        <rect x="35" y="625" width="290" height="70" class="box"/><text x="180" y="653">CONTINUE MONITORING /</text><text x="180" y="673">REPORT NORMAL OR INPUT CAUSE</text><text x="180" y="690" class="num">212</text>
+        <rect x="435" y="625" width="290" height="70" class="box"/><text x="580" y="650">RANK LAG-ACTIVE DISTURBANCE</text><text x="580" y="670">AND RESPONSE CAUSES</text><text x="580" y="690" class="num">214</text>
+        <rect x="435" y="750" width="290" height="70" class="box"/><text x="580" y="778">COMPUTE ANCHORED</text><text x="580" y="798">COUNTERFACTUAL RECOVERY</text><text x="580" y="815" class="num">216</text>
+        <polygon points="580,855 720,910 580,965 440,910" class="box"/><text x="580" y="902">ENVELOPE, TRUST,</text><text x="580" y="922">AND CEILINGS PASS?</text><text x="580" y="947" class="num">218</text>
+      </g>
+      <path d="M380 102 L380 140 M380 202 L380 240 M380 302 L380 340 M380 402 L380 440" class="line" marker-end="url(#a2)"/>
+      <path d="M210 505 L180 505 L180 625" class="line" marker-end="url(#a2)"/><text x="135" y="493" class="txt">NO</text>
+      <path d="M550 505 L580 505 L580 625" class="line" marker-end="url(#a2)"/><text x="600" y="493" class="txt">YES</text>
+      <path d="M580 695 L580 750 M580 820 L580 855" class="line" marker-end="url(#a2)"/>
+      <rect x="30" y="865" width="300" height="78" class="box"/><text x="180" y="895" class="txt" text-anchor="middle">WITHHOLD ROUTINE ADVISORY</text><text x="180" y="915" class="txt" text-anchor="middle">GENERATE MoC DOSSIER</text><text x="180" y="938" class="num" text-anchor="middle">220</text>
+      <path d="M440 910 L330 910" class="line" marker-end="url(#a2)"/><text x="375" y="900" class="txt">NO</text>
+      <text x="725" y="900" class="txt">YES</text>
+    </svg>
+    <div class="fig">FIG. 2</div>
+  </section>
+
+  <!-- FIG. 3: Roles -->
+  <section class="sheet">
+    <h1>CAUSAL-ROLE PARTITION AND FURNACE FLOW</h1>
+    <svg viewBox="0 0 760 1000" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"/></marker></defs>
+      <rect x="35" y="120" width="150" height="130" class="box"/><text x="110" y="153" class="txt" text-anchor="middle">MANIPULATED</text><text x="110" y="174" class="txt" text-anchor="middle">INPUTS</text><text x="110" y="202" class="small" text-anchor="middle">Fb, Th, Fo, Pt, PCI</text><text x="110" y="230" class="num" text-anchor="middle">302</text>
+      <rect x="35" y="360" width="150" height="145" class="box"/><text x="110" y="393" class="txt" text-anchor="middle">DISTURBANCES</text><text x="110" y="420" class="small" text-anchor="middle">CSR, RDI, moisture,</text><text x="110" y="440" class="small" text-anchor="middle">chemistry, alkali, Zn</text><text x="110" y="480" class="num" text-anchor="middle">304</text>
+      <path class="thick" d="M305 90 L455 90 L490 250 L490 590 L450 710 L450 860 L310 860 L310 710 L270 590 L270 250 Z"/><text x="380" y="455" class="txt" text-anchor="middle">PHYSICAL</text><text x="380" y="478" class="txt" text-anchor="middle">BLAST FURNACE</text><text x="380" y="510" class="num" text-anchor="middle">306</text>
+      <rect x="570" y="120" width="155" height="145" class="box"/><text x="647" y="153" class="txt" text-anchor="middle">STATE</text><text x="647" y="174" class="txt" text-anchor="middle">RESPONSES</text><text x="647" y="202" class="small" text-anchor="middle">dPu, dPl, top gas,</text><text x="647" y="222" class="small" text-anchor="middle">stave temperatures</text><text x="647" y="250" class="num" text-anchor="middle">308</text>
+      <rect x="570" y="375" width="155" height="120" class="box"/><text x="647" y="410" class="txt" text-anchor="middle">OUTCOMES</text><text x="647" y="438" class="small" text-anchor="middle">tonnes, HMT, Si, S</text><text x="647" y="476" class="num" text-anchor="middle">310</text>
+      <rect x="570" y="620" width="155" height="145" class="dash"/><text x="647" y="653" class="txt" text-anchor="middle">DERIVED LATENT</text><text x="647" y="674" class="txt" text-anchor="middle">STATES</text><text x="647" y="702" class="small" text-anchor="middle">RAFT, CZ, alkali,</text><text x="647" y="722" class="small" text-anchor="middle">hearth inventory</text><text x="647" y="752" class="num" text-anchor="middle">312</text>
+      <path d="M185 185 L270 270" class="line" marker-end="url(#a3)"/><path d="M185 425 L270 510" class="line" marker-end="url(#a3)"/>
+      <path d="M490 280 L570 185" class="line" marker-end="url(#a3)"/><path d="M490 440 L570 435" class="line" marker-end="url(#a3)"/><path d="M490 650 L570 690" class="line" marker-end="url(#a3)"/>
+      <text x="380" y="925" class="txt" text-anchor="middle">EACH TAG HAS EXACTLY ONE ROLE</text>
+    </svg>
+    <div class="fig">FIG. 3</div>
+  </section>
+
+  <!-- FIG. 4: Golden Bands -->
+  <section class="sheet">
+    <h1>TARGET-PRODUCTION-CONDITIONED OPERATING BANDS</h1>
+    <svg viewBox="0 0 760 1000" xmlns="http://www.w3.org/2000/svg">
+      <line x1="100" y1="840" x2="690" y2="840" class="thick"/><line x1="100" y1="840" x2="100" y2="120" class="thick"/>
+      <text x="400" y="900" class="txt" text-anchor="middle">REQUIRED HOT-METAL PRODUCTION P*</text><text x="28" y="480" class="txt" transform="rotate(-90 28 480)" text-anchor="middle">TAG VALUE x_i</text>
+      <path d="M130 700 C260 650 420 500 650 320" class="thick"/><path d="M130 790 C260 730 420 590 650 410" class="line"/><path d="M130 610 C260 560 420 410 650 230" class="line"/>
+      <text x="660" y="220" class="txt">U_i(P*)</text><text x="660" y="315" class="txt">C_i(P*)</text><text x="660" y="415" class="txt">L_i(P*)</text>
+      <line x1="245" y1="180" x2="245" y2="840" class="line" stroke-dasharray="6 5"/><line x1="440" y1="180" x2="440" y2="840" class="line" stroke-dasharray="6 5"/><line x1="620" y1="180" x2="620" y2="840" class="line" stroke-dasharray="6 5"/>
+      <text x="245" y="870" class="small" text-anchor="middle">4,000 t/d</text><text x="440" y="870" class="small" text-anchor="middle">4,500 t/d</text><text x="620" y="870" class="small" text-anchor="middle">4,850 t/d</text>
+      <rect x="155" y="85" width="430" height="75" class="box"/><text x="370" y="113" class="txt" text-anchor="middle">EMPIRICAL P18/P50/P82 COHORT</text><text x="370" y="138" class="txt" text-anchor="middle">+ PHYSICAL PRODUCTION-INTENSITY SHIFT</text><text x="600" y="155" class="num">114</text>
+    </svg>
+    <div class="fig">FIG. 4</div>
+  </section>
+
+  <!-- FIG. 5: Lag alignment -->
+  <section class="sheet">
+    <h1>TAG-SPECIFIC PHYSICAL LAG ALIGNMENT</h1>
+    <svg viewBox="0 0 760 1000" xmlns="http://www.w3.org/2000/svg">
+      <line x1="80" y1="850" x2="700" y2="850" class="thick"/><text x="390" y="895" class="txt" text-anchor="middle">QUERY TIME t</text>
+      <line x1="650" y1="90" x2="650" y2="870" class="line" stroke-dasharray="8 5"/>
+      <text x="650" y="65" class="txt" text-anchor="middle">t</text>
+      <text x="75" y="165" class="txt">TOP PRESSURE</text><path d="M180 160 L300 160 L300 120 L360 120 L360 160 L650 160" class="thick"/><path d="M300 210 C330 185 360 175 400 170 C470 162 550 160 650 160" class="line"/><text x="190" y="200" class="small">tau = 0.6 h</text>
+      <text x="75" y="310" class="txt">BLAST / OXYGEN</text><path d="M180 305 L270 305 L270 260 L340 260 L340 305 L650 305" class="thick"/><path d="M270 355 C320 315 390 305 650 305" class="line"/><text x="190" y="345" class="small">tau = 1.0 h</text>
+      <text x="75" y="455" class="txt">PCI</text><path d="M180 450 L235 450 L235 405 L305 405 L305 450 L650 450" class="thick"/><path d="M235 505 C320 445 430 450 650 450" class="line"/><text x="190" y="490" class="small">tau = 2.5 h</text>
+      <text x="75" y="600" class="txt">CHARGED COKE</text><path d="M180 595 L205 595 L205 550 L275 550 L275 595 L650 595" class="thick"/><path d="M205 650 C340 570 500 595 650 595" class="line"/><text x="190" y="640" class="small">tau = 6.5 h</text>
+      <text x="75" y="745" class="txt">ALKALI / ZINC</text><path d="M180 740 C270 705 390 700 650 740" class="thick"/><text x="190" y="785" class="small">integral state: days</text>
+      <text x="400" y="930" class="txt" text-anchor="middle">THICK: INPUT HISTORY   THIN: LAG-ACTIVE VALUE x_tilde_i(t)</text><text x="690" y="925" class="num">116</text>
+    </svg>
+    <div class="fig">FIG. 5</div>
+  </section>
+
+  <!-- FIG. 6: Sensor anchoring -->
+  <section class="sheet">
+    <h1>SENSOR-ANCHORED HYBRID TWIN AND ZERO-CHANGE IDENTITY</h1>
+    <svg viewBox="0 0 760 1000" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a6" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"/></marker></defs>
+      <rect x="55" y="90" width="180" height="80" class="box"/><text x="145" y="120" class="txt" text-anchor="middle">CURRENT INPUT u0</text><text x="145" y="145" class="num" text-anchor="middle">602</text>
+      <rect x="290" y="90" width="180" height="80" class="box"/><text x="380" y="120" class="txt" text-anchor="middle">PHYSICS f(u0)</text><text x="380" y="145" class="num" text-anchor="middle">604</text>
+      <rect x="525" y="90" width="180" height="80" class="box"/><text x="615" y="120" class="txt" text-anchor="middle">MEASURED y0</text><text x="615" y="145" class="num" text-anchor="middle">606</text>
+      <path d="M235 130 L290 130 M470 130 L525 130" class="line" marker-end="url(#a6)"/>
+      <rect x="260" y="250" width="240" height="90" class="box"/><text x="380" y="282" class="txt" text-anchor="middle">ANCHOR BIAS</text><text x="380" y="308" class="txt" text-anchor="middle">b0 = y0 - f(u0)</text><text x="510" y="335" class="num">124</text>
+      <path d="M615 170 L615 215 L500 280 M380 170 L380 250" class="line" marker-end="url(#a6)"/>
+      <rect x="55" y="450" width="180" height="80" class="box"/><text x="145" y="480" class="txt" text-anchor="middle">CANDIDATE</text><text x="145" y="504" class="txt" text-anchor="middle">u0 + delta_u</text><text x="145" y="525" class="num" text-anchor="middle">608</text>
+      <rect x="290" y="450" width="180" height="80" class="box"/><text x="380" y="480" class="txt" text-anchor="middle">SOFT-LIMITED</text><text x="380" y="504" class="txt" text-anchor="middle">PHYSICS f(u0+du)</text><text x="380" y="525" class="num" text-anchor="middle">610</text>
+      <rect x="525" y="450" width="180" height="80" class="box"/><text x="615" y="480" class="txt" text-anchor="middle">LEARNED CAUSAL</text><text x="615" y="504" class="txt" text-anchor="middle">RESIDUAL</text><text x="615" y="525" class="num" text-anchor="middle">612</text>
+      <path d="M235 490 L290 490" class="line" marker-end="url(#a6)"/><path d="M470 490 L525 490" class="line" marker-end="url(#a6)"/>
+      <rect x="210" y="650" width="340" height="95" class="box"/><text x="380" y="682" class="txt" text-anchor="middle">RECONCILED COUNTERFACTUAL</text><text x="380" y="707" class="txt" text-anchor="middle">y_hat = f(u0+du) + b0 + bounded residual</text><text x="560" y="740" class="num">614</text>
+      <path d="M380 340 L380 650 M380 530 L380 650 M615 530 L550 680" class="line" marker-end="url(#a6)"/>
+      <rect x="180" y="840" width="400" height="80" class="dash"/><text x="380" y="870" class="txt" text-anchor="middle">WHEN delta_u = 0: y_hat = y0</text><text x="380" y="895" class="txt" text-anchor="middle">AND dP = dPu + dPl</text><text x="590" y="915" class="num">616</text>
+      <path d="M380 745 L380 840" class="line" marker-end="url(#a6)"/>
+    </svg>
+    <div class="fig">FIG. 6</div>
+  </section>
+
+  <!-- FIG. 7: Envelope and ceilings -->
+  <section class="sheet">
+    <h1>JOINT-DENSITY ENVELOPE, TRUST REGION, AND CEILING ARBITER</h1>
+    <svg viewBox="0 0 760 1000" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a7" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"/></marker></defs>
+      <ellipse cx="280" cy="330" rx="210" ry="145" class="thick"/><ellipse cx="280" cy="330" rx="85" ry="58" class="line" stroke-dasharray="6 4"/>
+      <circle cx="250" cy="340" r="7"/><text x="226" y="365" class="txt">u0</text><circle cx="335" cy="290" r="7"/><text x="350" y="287" class="txt">u1</text><circle cx="555" cy="190" r="8"/><text x="570" y="187" class="txt">u2</text>
+      <text x="280" y="120" class="txt" text-anchor="middle">HISTORICAL ON-WIND</text><text x="280" y="142" class="txt" text-anchor="middle">MAHALANOBIS ELLIPSOID</text><text x="480" y="450" class="num">128</text>
+      <text x="280" y="325" class="small" text-anchor="middle">LOCAL TRUST REGION</text><text x="560" y="220" class="small">OUTSIDE ENVELOPE</text>
+      <rect x="55" y="555" width="125" height="70" class="box"/><text x="117" y="582" class="small" text-anchor="middle">TUYERE</text><text x="117" y="602" class="small" text-anchor="middle">STOICHIOMETRY</text>
+      <rect x="190" y="555" width="125" height="70" class="box"/><text x="252" y="582" class="small" text-anchor="middle">PERMEABILITY</text><text x="252" y="602" class="small" text-anchor="middle">dP</text>
+      <rect x="325" y="555" width="125" height="70" class="box"/><text x="387" y="582" class="small" text-anchor="middle">FLOODING /</text><text x="387" y="602" class="small" text-anchor="middle">FLUIDIZATION</text>
+      <rect x="460" y="555" width="125" height="70" class="box"/><text x="522" y="582" class="small" text-anchor="middle">TOP-GAS</text><text x="522" y="602" class="small" text-anchor="middle">THERMAL</text>
+      <rect x="595" y="555" width="125" height="70" class="box"/><text x="657" y="582" class="small" text-anchor="middle">HEARTH</text><text x="657" y="602" class="small" text-anchor="middle">DRAINAGE</text>
+      <rect x="220" y="710" width="320" height="80" class="box"/><text x="380" y="742" class="txt" text-anchor="middle">LOWEST PHYSICAL CEILING</text><text x="380" y="765" class="txt" text-anchor="middle">IS REPORTED AS BINDING</text><text x="550" y="785" class="num">130</text>
+      <path d="M117 625 L280 710 M252 625 L320 710 M387 625 L380 710 M522 625 L440 710 M657 625 L480 710" class="line" marker-end="url(#a7)"/>
+      <rect x="55" y="865" width="280" height="75" class="box"/><text x="195" y="895" class="txt" text-anchor="middle">ROUTINE ADVISORY</text><text x="195" y="920" class="num" text-anchor="middle">132</text>
+      <rect x="425" y="865" width="280" height="75" class="box"/><text x="565" y="895" class="txt" text-anchor="middle">MoC TRIAL DOSSIER</text><text x="565" y="920" class="num" text-anchor="middle">134</text>
+      <path d="M300 790 L195 865 M460 790 L565 865" class="line" marker-end="url(#a7)"/>
+    </svg>
+    <div class="fig">FIG. 7</div>
+  </section>
+
+  <!-- FIG. 8: Audit -->
+  <section class="sheet">
+    <h1>TAMPER-EVIDENT ADVISORY AND SEPARATE EXECUTION CONFIRMATION</h1>
+    <svg viewBox="0 0 760 1000" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a8" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"/></marker></defs>
+      <rect x="50" y="100" width="190" height="95" class="box"/><text x="145" y="130" class="txt" text-anchor="middle">ADVISORY RECORD</text><text x="145" y="153" class="small" text-anchor="middle">model version + inputs</text><text x="145" y="176" class="num" text-anchor="middle">802</text>
+      <rect x="285" y="100" width="190" height="95" class="box"/><text x="380" y="130" class="txt" text-anchor="middle">OPERATOR DECISION</text><text x="380" y="153" class="small" text-anchor="middle">accept / reject / note</text><text x="380" y="176" class="num" text-anchor="middle">804</text>
+      <rect x="520" y="100" width="190" height="95" class="box"/><text x="615" y="130" class="txt" text-anchor="middle">ROLE CHECK</text><text x="615" y="153" class="small" text-anchor="middle">operator / metallurgist</text><text x="615" y="176" class="num" text-anchor="middle">806</text>
+      <path d="M240 147 L285 147 M475 147 L520 147" class="line" marker-end="url(#a8)"/>
+      <rect x="190" y="300" width="380" height="110" class="box"/><text x="380" y="332" class="txt" text-anchor="middle">HASHED EVENT</text><text x="380" y="357" class="small" text-anchor="middle">H_n = SHA-256(H_(n-1) | event | model)</text><text x="380" y="385" class="num" text-anchor="middle">136</text>
+      <path d="M380 195 L380 300" class="line" marker-end="url(#a8)"/>
+      <rect x="65" y="520" width="285" height="105" class="dash"/><text x="207" y="553" class="txt" text-anchor="middle">ORIGINAL EVENT</text><text x="207" y="578" class="small" text-anchor="middle">immutable acceptance / rejection</text><text x="207" y="605" class="num" text-anchor="middle">808</text>
+      <rect x="410" y="520" width="285" height="105" class="box"/><text x="552" y="553" class="txt" text-anchor="middle">LATER PLANT REPORT</text><text x="552" y="578" class="small" text-anchor="middle">executed / partial / not executed</text><text x="552" y="605" class="num" text-anchor="middle">138</text>
+      <path d="M380 410 L207 520 M380 410 L552 520" class="line" marker-end="url(#a8)"/>
+      <rect x="190" y="735" width="380" height="100" class="box"/><text x="380" y="768" class="txt" text-anchor="middle">AUDIT VERIFICATION</text><text x="380" y="793" class="small" text-anchor="middle">event hash remains unchanged;</text><text x="380" y="813" class="small" text-anchor="middle">execution is a separate field</text><text x="380" y="833" class="num" text-anchor="middle">810</text>
+      <path d="M207 625 L300 735 M552 625 L460 735" class="line" marker-end="url(#a8)"/>
+    </svg>
+    <div class="fig">FIG. 8</div>
+  </section>
+</body>
+</html>
