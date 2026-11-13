@@ -4,7 +4,7 @@ These claims are intentionally framed as an industrial furnace-monitoring proces
 
 ## I/We claim:
 
-1. **A method for sensor-based diagnosis of a physical production shortfall in an iron blast furnace by a read-only industrial furnace-monitoring apparatus coupled to a plurality of blast-furnace sensors, the method comprising:**
+1. **A method for identifying an unmeasured physical cause of a hot-metal production shortfall in an iron blast furnace, performed by a furnace-monitoring apparatus coupled to a plurality of blast-furnace sensors, the method comprising:**
 
    receiving, through an industrial historian interface restricted to read services, time-series physical measurements comprising manipulated furnace inputs, material disturbances, furnace state responses, and hot-metal production or quality outcomes;
 
@@ -18,9 +18,9 @@ These claims are intentionally framed as an industrial furnace-monitoring proces
 
    detecting an unchanged-input shortfall in which a measured or reconciled production value is below the required hot-metal production rate or below a preceding rolling production reference while a selected plurality of manipulated inputs remain within their corresponding production-conditioned operating bands;
 
-   in response to the unchanged-input shortfall, identifying at least one material disturbance or furnace state response as a physical cause according to a deviation of the lag-active physical value from both its production-conditioned operating band and a preceding rolling reference of the corresponding furnace tag;
+   in response to the unchanged-input shortfall, identifying an unmeasured furnace condition as the physical cause by a deviation of the lag-active physical value of a measured disturbance or furnace state response from both its production-conditioned operating band and a preceding rolling reference of the corresponding furnace tag, the unmeasured furnace condition being at least one of an alkali or zinc accumulation, a burden-permeability loss, a cohesive-zone shift, a circumferential gas maldistribution, or a hearth-drainage restriction;
 
-   generating a counterfactual recovery trajectory with a reduced-order blast-furnace physical model reconciled to current physical sensor measurements and a learned residual restricted to selected causal-parent measurements;
+   testing a candidate recovery with a reduced-order blast-furnace material-and-energy calculation, including calculating an additive anchor bias between a measured sensor response and a free-running physical-model output at a baseline state, holding said additive anchor bias fixed during the test, and enforcing a physical identity in which a simulated total furnace pressure drop equals an upper-furnace pressure drop plus a lower-furnace pressure drop;
 
    evaluating the counterfactual recovery trajectory against a joint multi-parameter historical operating-density envelope, a step trust region, and a plurality of physical blast-furnace productivity ceilings; and
 
@@ -28,9 +28,9 @@ These claims are intentionally framed as an industrial furnace-monitoring proces
 
 2. The method as claimed in claim 1, wherein the industrial historian interface permits only an HTTP read operation, an OPC-UA Read service, an OPC-UA HistoryRead service, or reading an immutable historian-export file, and rejects historian write, OPC method-call, SQL mutation, programmable-logic-controller write, distributed-control-system setpoint, and furnace-actuator operations.
 
-3. The method as claimed in claim 1, wherein the reduced-order blast-furnace physical model is anchored at a baseline by calculating an additive bias between a measured sensor response and a free-running physical-model output, holding said additive bias fixed during the counterfactual recovery trajectory, and enforcing a physical identity in which total furnace pressure drop equals upper-furnace pressure drop plus lower-furnace pressure drop.
+3. The method as claimed in claim 1, wherein, when the counterfactual recovery trajectory uses a manipulated-input vector equal to a current manipulated-input vector, each anchored simulated response equals the corresponding measured baseline response within a numerical tolerance.
 
-4. The method as claimed in claim 3, wherein the reduced-order blast-furnace physical model applies a monotonic continuously differentiable saturation function outside a nominal physical interval, thereby retaining a non-zero response sensitivity at a furnace operating limit.
+4. The method as claimed in claim 1, wherein the reduced-order blast-furnace physical model applies a monotonic continuously differentiable saturation function outside a nominal physical interval, thereby retaining a non-zero response sensitivity at a furnace operating limit.
 
 5. The method as claimed in claim 1, wherein the joint multi-parameter historical operating-density envelope is a regularized Mahalanobis ellipsoid fitted to qualified on-wind manipulated-input vectors and the step trust region is a Mahalanobis distance from a current manipulated-input vector.
 

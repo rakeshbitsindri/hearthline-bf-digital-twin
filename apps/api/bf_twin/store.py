@@ -636,6 +636,64 @@ def playback(stride: int = 6, dataset_id: Optional[str] = None) -> dict:
     return result
 
 
+WINDOW_HOURS = {"1h": 1, "6h": 6, "24h": 24, "7d": 168, "30d": 720}
+
+
+def parameter_window_stats(window: str = "24h", t: Optional[str] = None, dataset_id: Optional[str] = None) -> dict[str, Any]:
+    """Prometheus-style range stats. The archive step is one hour, so a minute window does not exist."""
+    key = window if window in WINDOW_HOURS else "24h"
+    hours = WINDOW_HOURS[key]
+    frame = clean_hourly(dataset_id)
+    end = pd.Timestamp(t) if t else pd.Timestamp(frame["dt"].max())
+    start = end - pd.Timedelta(hours=max(0, hours - 1))
+    sl = frame[(frame["dt"] >= start) & (frame["dt"] <= end)]
+    if sl.empty:
+        sl = frame.tail(hours)
+    catalog = {item["tag"]: item for item in PARAMETER_CATALOG}
+    parameters = []
+    for col in [c for c in sl.columns if c != "dt"]:
+        numeric = pd.to_numeric(sl[col], errors="coerce")
+        clean = numeric.dropna()
+        if clean.empty:
+            continue
+        step = max(1, len(numeric) // 24)
+        spark = [None if pd.isna(v) else round(float(v), 3) for v in numeric.iloc[::step].tail(24)]
+        last = float(clean.iloc[-1])
+        first = float(clean.iloc[0])
+        meta = catalog.get(col, {})
+        parameters.append(
+            {
+                "tag": col,
+                "label": meta.get("label", col),
+                "unit": meta.get("unit", ""),
+                "role": meta.get("role", "state_response"),
+                "samples": int(clean.shape[0]),
+                "last": round(last, 3),
+                "min": round(float(clean.min()), 3),
+                "max": round(float(clean.max()), 3),
+                "avg": round(float(clean.mean()), 3),
+                "stddev": round(float(clean.std(ddof=0) or 0.0), 3),
+                "delta": round(last - first, 3),
+                "spark": spark,
+            }
+        )
+    meta = active_dataset_meta()
+    return {
+        "dataset_id": meta.get("id"),
+        "dataset_name": meta.get("name"),
+        "origin": meta.get("origin"),
+        "window": key,
+        "window_hours": hours,
+        "sampling_interval": "1h",
+        "minute_stats": "unavailable",
+        "minute_note": "This archive is one row per hour. Minute min, max, and standard deviation are below the sampling interval.",
+        "from": str(sl["dt"].iloc[0]),
+        "to": str(sl["dt"].iloc[-1]),
+        "rows": int(len(sl)),
+        "parameters": parameters,
+    }
+
+
 def write_card(card: dict, dataset_id: Optional[str] = None) -> None:
     ds = dataset_id or _ACTIVE_DATASET
     CACHE.mkdir(parents=True, exist_ok=True)

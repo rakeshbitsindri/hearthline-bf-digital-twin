@@ -9,14 +9,16 @@ from pathlib import Path
 from typing import Dict, Optional
 
 import pandas as pd
-from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from bf_twin.connector import connector_diagnostics, enforce_readonly_op, sse_shadow_stream
+from bf_twin.connector import advisory_autopilot, connector_diagnostics, enforce_readonly_op, sse_shadow_stream
+from bf_twin.fine_buffer import hold_fine, start_fine, status_fine, stop_fine, tick_fine
+from bf_twin.visits import client_ip, record_visit, visit_summary
 from bf_twin.db import (
     MODEL_VERSION,
     ROLES_PERMISSIONS,
@@ -58,6 +60,7 @@ from bf_twin.store import (
     labeled_regimes,
     list_datasets,
     parameter_catalog,
+    parameter_window_stats,
     playback,
     quality_report,
     set_active_dataset,
@@ -136,6 +139,24 @@ class OptimizeIn(StrictModel):
 
 class DatasetSelectIn(StrictModel):
     dataset_id: str
+
+
+class VisitIn(StrictModel):
+    path: str = "/"
+    site: str = ""
+    ref: str = ""
+
+
+@app.post("/visits/collect")
+def visits_collect(body: VisitIn, request: Request) -> dict:
+    headers = {k.lower(): v for k, v in request.headers.items()}
+    ip = client_ip(headers, request.client.host if request.client else "")
+    return record_visit(ip, body.site, body.path, body.ref)
+
+
+@app.get("/visits/summary")
+def visits_summary() -> dict:
+    return visit_summary()
 
 
 @app.get("/health")
@@ -281,6 +302,13 @@ def playback_route(stride: int = 6) -> dict:
     return playback(stride)
 
 
+@app.get("/stats/windows")
+def stats_windows_route(window: str = "24h", t: Optional[str] = None) -> dict:
+    if window not in {"1h", "6h", "24h", "7d", "30d"}:
+        raise HTTPException(400, "window must be 1h, 6h, 24h, 7d, or 30d")
+    return parameter_window_stats(window, t)
+
+
 @app.get("/series")
 def series(tag: str, start: Optional[str] = None, end: Optional[str] = None, limit: int = 400) -> dict:
     try:
@@ -382,6 +410,69 @@ def audit_list(limit: int = 100) -> dict:
 @app.get("/audit/verify")
 def audit_verify_route() -> dict:
     return verify_audit_chain()
+
+
+class AutopilotIn(StrictModel):
+    t: str
+    target_production: float = 4500.0
+
+
+class FineRunIn(StrictModel):
+    mode: str
+    target_production: float = 4500.0
+    steps: int = 1
+
+
+@app.post("/play/fine/start")
+def fine_start(body: FineRunIn) -> dict:
+    try:
+        return start_fine(body.mode, body.target_production)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@app.post("/play/fine/tick")
+def fine_tick(body: FineRunIn) -> dict:
+    try:
+        return tick_fine(body.steps)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+class FineHoldIn(StrictModel):
+    tag: str
+    value: Optional[float] = None
+
+
+@app.post("/play/fine/hold")
+def fine_hold(body: FineHoldIn) -> dict:
+    try:
+        return hold_fine(body.tag, body.value)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@app.post("/play/fine/stop")
+def fine_stop() -> dict:
+    return stop_fine()
+
+
+@app.get("/play/fine/status")
+def fine_status() -> dict:
+    return status_fine()
+
+
+@app.post("/autopilot/advise")
+def autopilot_advise(body: AutopilotIn) -> dict:
+    return advisory_autopilot(body.t, body.target_production)
+
+
+@app.post("/autopilot/dispatch")
+def autopilot_dispatch() -> dict:
+    raise HTTPException(
+        403,
+        "Autopilot dispatch refused. SCADA, OPC write, and setpoint plugins are not installed.",
+    )
 
 
 @app.post("/connector/probe")

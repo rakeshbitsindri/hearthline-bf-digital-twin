@@ -12,6 +12,8 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
           rel="stylesheet"
         />
+        <script src="/visit-config.js" />
+        <script src="/visit.js" defer />
         <script src="/twin-knowledge-bundle.js" defer />
       </head>
       <body>

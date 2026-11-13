@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { API } from "../../components/Frame";
+import { GoldenField } from "../../components/GoldenField";
+import { ParameterStats } from "../../components/ParameterStats";
 
 export default function Investigate() {
   const [twin, setTwin] = useState(null);
@@ -80,6 +82,9 @@ export default function Investigate() {
           ))}
         </div>
       </div>
+
+      <GoldenField targetProd={targetProd} />
+      <ParameterStats />
 
       {shortfalls && (
         <>

@@ -78,6 +78,64 @@ READ_PROFILES = [
 ]
 
 
+def advisory_autopilot(when, target_production: float = 4500.0) -> dict:
+    """Propose constant-production moves. Shadow plugin commands are never dispatched."""
+    sim = simulate_coupled(pd.Timestamp(when), target_production=float(target_production))
+    steps = []
+    for row in sim.get("parameters") or []:
+        if row.get("role") != "manipulated":
+            continue
+        if row.get("simulated_golden_status", "in_golden") == "in_golden":
+            continue
+        if row.get("golden_center") is None:
+            continue
+        steps.append(
+            {
+                "tag": row["tag"],
+                "label": row["label"],
+                "unit": row["unit"],
+                "now": row.get("simulated"),
+                "golden_center": row.get("golden_center"),
+                "status": row.get("simulated_golden_status"),
+                "advisory": (
+                    f"Hold {row['label']} at {row.get('golden_center')} {row.get('unit')} "
+                    f"for the {target_production:g} t/d band."
+                ),
+                "shadow_plugins": [
+                    {
+                        "plugin": "pi_web_api_readonly",
+                        "command": f"POST /piwebapi/streams/update {row['tag']}={row.get('golden_center')}",
+                        "dispatched": False,
+                        "blocked_because": "PI profile allows GET only",
+                    },
+                    {
+                        "plugin": "opcua_readonly_shadow",
+                        "command": f"Write {row['tag']} = {row.get('golden_center')}",
+                        "dispatched": False,
+                        "blocked_because": "OPC-UA profile allows Read and HistoryRead only",
+                    },
+                ],
+            }
+        )
+    regime = (sim.get("operating_regime") or {}).get("regime", "unknown")
+    compliance = (sim.get("golden_analysis") or {}).get("simulated_compliance_pct")
+    situation = (
+        f"Regime {regime}. Golden compliance {compliance}%. "
+        f"{len(steps)} manipulated tags sit outside the band for {target_production:g} t/d."
+    )
+    return {
+        "mode": "advisory_only",
+        "plant_write_capable": False,
+        "dataset_id": active_dataset_id(),
+        "origin": active_dataset_meta().get("origin"),
+        "t": sim.get("t"),
+        "target_production": target_production,
+        "situation": situation,
+        "steps": steps,
+        "dispatch": "not_sent",
+    }
+
+
 def enforce_readonly_op(op: str) -> dict:
     """Hard gate: reject every non-read operation with a PermissionError (mapped to HTTP 403)."""
     norm = (op or "").strip().lower()

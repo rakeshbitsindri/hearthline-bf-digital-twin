@@ -4,7 +4,7 @@ Do not file until every section is completed and reviewed by patent counsel.
 
 ## 1. Proposed application
 
-- Title: Lag-Aware Advisory Digital Twin for Diagnosing Blast-Furnace Production Shortfalls
+- Title: Method of Identifying an Unmeasured Cause of a Blast-Furnace Production Shortfall
 - Desired first filing jurisdiction: `[India / United States / Other]`
 - Desired filing type: `[Provisional / Complete / Nonprovisional / PCT]`
 - Target filing date: `[DATE]`

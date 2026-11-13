@@ -4,7 +4,7 @@ Attorney review required. The set contains 20 total claims and two independent c
 
 ## What is claimed is:
 
-1. **A computer-implemented method for diagnosing a production shortfall of a blast furnace and generating a safety-gated operator advisory, the method comprising:**
+1. **A method for identifying an unmeasured physical cause of a hot-metal production shortfall in an iron blast furnace while operator-set inputs remain inside a production-conditioned band, the method comprising:**
 
    receiving, through a historian interface restricted to read operations, time-series records from a plurality of sensors associated with the blast furnace;
 
@@ -24,9 +24,15 @@ Attorney review required. The set contains 20 total claims and two independent c
 
    detecting an unchanged-input production-shortfall interval in which a production value is below at least one of the required hot-metal production rate or a preceding rolling production reference while a selected plurality of the manipulated inputs remain within corresponding production-conditioned operating bands;
 
-   during the unchanged-input production-shortfall interval, ranking at least one disturbance or furnace state response as a cause of the production shortfall according to a deviation of its lag-active value from (i) its production-conditioned operating band and (ii) a preceding rolling tag reference;
+   during the unchanged-input production-shortfall interval, identifying an unmeasured furnace condition as the cause of the production shortfall by ranking a measured disturbance or furnace state response whose lag-active value deviates from both (i) its production-conditioned operating band and (ii) a preceding rolling tag reference, the unmeasured furnace condition comprising at least one of an alkali or zinc accumulation, a burden-permeability loss, a cohesive-zone shift, a circumferential gas maldistribution, or a hearth-drainage restriction;
 
-   generating, with a hybrid digital twin comprising a reduced-order blast-furnace physics model and a learned residual model, a counterfactual recovery trajectory for at least one candidate manipulated-input vector;
+   generating a counterfactual recovery trajectory for at least one candidate manipulated-input vector with a reduced-order blast-furnace material-and-energy calculation reconciled to the sensors, wherein generating the counterfactual recovery trajectory comprises:
+
+   computing an additive anchor bias at a baseline state as a difference between a measured furnace response and a free-running output of the reduced-order blast-furnace physics model,
+
+   holding the additive anchor bias fixed while evaluating the candidate manipulated-input vector, and
+
+   enforcing a pressure conservation identity in which a simulated total pressure drop equals a sum of an upper-furnace pressure drop and a lower-furnace pressure drop;
 
    determining whether the candidate manipulated-input vector is inside a joint-density operating envelope and a trust region and satisfies a plurality of physical blast-furnace productivity ceilings; and
 
@@ -42,13 +48,13 @@ Attorney review required. The set contains 20 total claims and two independent c
 
 6. The method of claim 1, wherein the reduced-order blast-furnace physics model includes at least three selected from raceway adiabatic flame temperature, tuyere oxygen/carbon stoichiometry, bosh-gas volume, Rist operating-line quantity, upper and lower packed-bed pressure drop, top-gas utilization, cohesive-zone geometry, volatile condensation load, hot-metal temperature, silicon response, or a production ceiling.
 
-7. The method of claim 1, further comprising, at a baseline state, computing an additive anchor bias as a difference between a measured furnace response and a free-running output of the reduced-order blast-furnace physics model, and holding the additive anchor bias fixed when generating the counterfactual recovery trajectory.
+7. The method of claim 1, further comprising confirming a zero-change identity in which, when the candidate manipulated-input vector equals a current manipulated-input vector, each anchored simulated response equals the corresponding measured baseline response within a numerical tolerance.
 
-8. The method of claim 7, further comprising enforcing a pressure conservation identity in which total pressure drop equals a sum of upper-furnace pressure drop and lower-furnace pressure drop and ensuring that the hybrid digital twin produces zero response drift when the candidate manipulated-input vector equals a current manipulated-input vector.
+8. The method of claim 7, wherein the learned residual model used for the counterfactual recovery trajectory is restricted to features that are not descendants of the production outcome, and wherein a manipulated input classified as not identifiable is excluded from the safety-gated operator advisory.
 
 9. The method of claim 1, wherein the reduced-order blast-furnace physics model applies a continuously differentiable monotonic saturation operator outside a nominal physical interval so that a response derivative remains nonzero outside the nominal physical interval.
 
-10. The method of claim 1, wherein the learned residual model comprises a forecast residual permitted to use information known at forecast time and a decision residual restricted to expert-approved causal parents of the outcome, and wherein the decision residual is disabled for a manipulated input identified as non-identifiable.
+10. The method of claim 1, wherein a forecast residual used to predict a future outcome is permitted to use information known at forecast time, and a separate decision residual used to score the candidate manipulated-input vector is restricted to causal-parent features of the outcome.
 
 11. The method of claim 1, wherein the joint-density operating envelope comprises a regularized Mahalanobis ellipsoid fitted to historical qualified on-wind manipulated-input vectors and the trust region comprises a Mahalanobis step distance from a current manipulated-input vector.
 
@@ -56,7 +62,7 @@ Attorney review required. The set contains 20 total claims and two independent c
 
 13. The method of claim 1, further comprising storing an operator acceptance or rejection of the safety-gated operator advisory in a hash-chained append-only record and storing later confirmation that a plant action occurred in a separate post-hoc execution field that does not alter the hash of the operator acceptance or rejection.
 
-14. **A read-only blast-furnace advisory system comprising:**
+14. **A system for identifying an unmeasured physical cause of a hot-metal production shortfall in an iron blast furnace, the system comprising:**
 
    a historian interface configured to receive time-series records from furnace sensors while lacking a write path to a plant historian, programmable logic controller, distributed control system, or furnace actuator;
 
@@ -72,9 +78,9 @@ Attorney review required. The set contains 20 total claims and two independent c
 
    detect a production shortfall during an interval in which selected manipulated inputs remain within the respective target-conditioned operating bands;
 
-   attribute the production shortfall to one or more lag-active disturbances or furnace state responses;
+   attribute the production shortfall to an unmeasured furnace condition inferred from one or more lag-active disturbances or furnace state responses that have left their target-conditioned operating bands;
 
-   anchor a reduced-order blast-furnace physics model to current measured sensor responses and combine a response of the anchored physics model with a learned residual to generate a candidate recovery advisory;
+   anchor a reduced-order blast-furnace material-and-energy calculation to current measured sensor responses and use that anchored calculation to test a candidate recovery;
 
    evaluate the candidate recovery advisory against a joint historical operating-density envelope, a local trust region, and multiple physical blast-furnace productivity ceilings; and
 

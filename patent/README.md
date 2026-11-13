@@ -4,7 +4,7 @@ This folder is an attorney-ready technical drafting package, not a filed patent 
 
 ## Recommended invention title
 
-**Lag-Aware Advisory Digital Twin for Diagnosing Blast-Furnace Production Shortfalls**
+**Method of Identifying an Unmeasured Cause of a Blast-Furnace Production Shortfall**
 
 This title has 10 words and fits the Indian Patent Office preference that a title normally contain no more than 15 words.
 
@@ -36,6 +36,12 @@ All PDFs carry a diagonal **DRAFT** watermark (except the drawings sheet, which 
 | `Filing_Checklist_US.pdf` / `Filing_Checklist_India.pdf` | Filing checklists |
 | `Inventor_Applicant_Intake.pdf` | Inventor / ownership intake |
 | `Patentability_And_Disclosure.pdf` | High-level patentability memo |
+
+## Four-pass claim validation (11 November 2026)
+
+`CLAIM_VALIDATION_PASSES.md` records four reviews: clarity, enablement against the running code, prior-art combination, and US §101 / India §3(k). After those passes, the fixed sensor anchor and the pressure-conservation identity were moved into both independent method claims, and the claims were copied into the US provisional and the India Form 2 so each specification can be handed to counsel as one document.
+
+The package is submission-formatted. It is not filed, and it cannot be filed until `INVENTOR_APPLICANT_INTAKE.md` is completed. A further public upload of these drafts is not recommended while the India novelty question is open.
 
 ## Independent Auto-mode validation
 

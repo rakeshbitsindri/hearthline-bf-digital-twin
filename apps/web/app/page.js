@@ -1,10 +1,30 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { API, useTwinTheme } from "../components/Frame";
+import { ParameterStats } from "../components/ParameterStats";
 
 const TwinCanvas = dynamic(() => import("../components/TwinCanvas"), { ssr: false });
+
+function furnaceClass(demand) {
+  const bands = [
+    [2500, "Small"],
+    [5500, "Medium"],
+    [8000, "Large"],
+    [12000, "Very large"],
+    [1e9, "Super-large"],
+  ];
+  let name = "Medium";
+  for (const [hi, label] of bands) {
+    if (Number(demand) < hi) {
+      name = label;
+      break;
+    }
+  }
+  const volume = name === "Medium" ? 2000 : Math.min(5800, Math.max(350, Number(demand) / 2.2));
+  return { name, volume: Math.round(volume) };
+}
 
 const KNOB_DEFS = [
   { tag: "Fb", label: "Blast Flow (Fb)", unit: "m³/min", group: "blast", minDelta: -800, maxDelta: 800, step: 10, tau: "1.0h" },
@@ -144,6 +164,33 @@ function Sparkline24h({ trajectory, field, label, unit, goldenLow, goldenHigh, c
   );
 }
 
+function RunTrace({ points }) {
+  const recorded = points.map((p) => Number(p.recorded)).filter((v) => Number.isFinite(v));
+  const held = points.map((p) => Number(p.held)).filter((v) => Number.isFinite(v));
+  const all = [...recorded, ...held];
+  if (all.length < 2) return null;
+  const min = Math.min(...all);
+  const max = Math.max(...all);
+  const span = max - min || 1;
+  const path = (key) => points.map((p, i) => {
+    const v = Number(p[key]);
+    if (!Number.isFinite(v)) return null;
+    const x = (i / Math.max(1, points.length - 1)) * 280;
+    const y = 46 - ((v - min) / span) * 40;
+    return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).filter(Boolean).join(" ");
+  return (
+    <div className="run-trace">
+      <svg viewBox="0 0 280 52" aria-label="Production through the run">
+        <path d={path("recorded")} className="run-recorded" />
+        <path d={path("held")} className="run-held" />
+      </svg>
+      <span>recorded</span>
+      <span>this run</span>
+    </div>
+  );
+}
+
 export default function TwinWorkbench() {
   const { themeMeta } = useTwinTheme();
 
@@ -152,7 +199,13 @@ export default function TwinWorkbench() {
   const [frames, setFrames] = useState([]);
   const [index, setIndex] = useState(0);
   const [customTimestamp, setCustomTimestamp] = useState(null);
-  const [playing, setPlaying] = useState(false);
+  const [runMode, setRunMode] = useState(null);
+  const [paused, setPaused] = useState(false);
+  const [runTrace, setRunTrace] = useState([]);
+  const [fineNow, setFineNow] = useState(null);
+  const [fineMeta, setFineMeta] = useState(null);
+  const [fineLevers, setFineLevers] = useState([]);
+  const [recovery, setRecovery] = useState(0);
   const [speed, setSpeed] = useState(4);
   const [open, setOpen] = useState(0.74);
   const [mode, setMode] = useState("hybrid");
@@ -225,20 +278,71 @@ export default function TwinWorkbench() {
     return () => clearTimeout(timer);
   }, [requiredProd]);
 
+  const simToken = useRef(0);
+  const simBusy = useRef(false);
+
   useEffect(() => {
-    if (!playing || frames.length === 0) return undefined;
+    if (runMode !== "history" || paused) return undefined;
+    if (!frames.length) return undefined;
     const timer = setInterval(() => {
+      if (simBusy.current) return;
       setCustomTimestamp(null);
       setIndex((cur) => (cur + 1) % frames.length);
-    }, 420 / speed);
+    }, Math.max(1200, 2400 / speed));
     return () => clearInterval(timer);
-  }, [playing, speed, frames.length]);
+  }, [runMode, paused, frames.length, speed]);
+
+  useEffect(() => {
+    if (paused || (runMode !== "autopilot" && runMode !== "goal")) return undefined;
+    let cancel = false;
+    const timer = setInterval(() => {
+      const steps = runMode === "autopilot" ? 1 : Math.min(60, Math.max(1, speed * 8));
+      fetch(`${API}/play/fine/tick`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: runMode, steps, target_production: Number(requiredProd) || 4500 }),
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((body) => {
+          if (cancel || !body?.latest) return;
+          setFineNow(body.latest);
+          setFineMeta(body);
+          if (Array.isArray(body.levers)) setFineLevers(body.levers);
+          setRunTrace((prev) => {
+            const last = prev[prev.length - 1];
+            if (last && last.t === body.latest.t) return prev;
+            return [...prev, { t: body.latest.t, mode: runMode, recorded: null, held: body.latest.Production }].slice(-60);
+          });
+        })
+        .catch(() => {});
+    }, 1000);
+    return () => {
+      cancel = true;
+      clearInterval(timer);
+    };
+  }, [runMode, paused, speed, requiredProd]);
+
+  useEffect(() => {
+    if (!simResult || (runMode !== "history" && runMode !== "goal")) return;
+    setRunTrace((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && last.t === simResult.t && last.mode === runMode) return prev;
+      return [...prev, {
+        t: simResult.t,
+        mode: runMode,
+        recorded: simResult.baseline_physics_kpis?.Production,
+        held: simResult.physics_kpis?.Production,
+      }].slice(-36);
+    });
+  }, [simResult, runMode]);
 
   const frame = frames[index];
   const activeTimestamp = customTimestamp || frame?.t;
 
   useEffect(() => {
     if (!activeTimestamp) return undefined;
+    const token = ++simToken.current;
+    simBusy.current = true;
     const handle = setTimeout(() => {
       fetch(`${API}/simulate`, {
         method: "POST",
@@ -258,16 +362,20 @@ export default function TwinWorkbench() {
           return r.json();
         })
         .then((data) => {
+          if (token !== simToken.current) return;
           setError("");
           setSimResult(data);
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => {
+          if (token === simToken.current) simBusy.current = false;
+        });
     }, 100);
     return () => clearTimeout(handle);
   }, [activeTimestamp, deltas, overrides, switches, mode, requiredProd]);
 
   async function handleDatasetSwitch(dsId) {
-    setPlaying(false);
+    setRunMode(null);
     await fetch(`${API}/datasets/select`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -331,6 +439,23 @@ export default function TwinWorkbench() {
     setOverrides((prev) => ({ ...prev, [tag]: Number(goldenCenter) }));
   }
 
+  function applyRecovery(pct) {
+    setRecovery(pct);
+    if (!simResult?.parameters || pct <= 0) {
+      setOverrides({});
+      setDeltas(ZERO_DELTAS);
+      return;
+    }
+    const next = {};
+    for (const p of simResult.parameters) {
+      if (p.role !== "manipulated" || p.golden_center == null || p.baseline == null) continue;
+      const target = Number(p.baseline) + (Number(p.golden_center) - Number(p.baseline)) * (pct / 100);
+      next[p.tag] = Number(target.toFixed(3));
+    }
+    setDeltas(ZERO_DELTAS);
+    setOverrides(next);
+  }
+
   function snapAllKnobsToGolden() {
     if (!simResult?.parameters) return;
     const nextOverrides = {};
@@ -344,8 +469,74 @@ export default function TwinWorkbench() {
     setOverrides((prev) => ({ ...prev, ...nextOverrides }));
   }
 
+  async function beginRun(next) {
+    if (runMode === next) {
+      fetch(`${API}/play/fine/stop`, { method: "POST" }).catch(() => {});
+      setFineNow(null);
+      setRunMode(null);
+      setOverrides({});
+      setDeltas(ZERO_DELTAS);
+      setRecovery(0);
+      return;
+    }
+    setPaused(false);
+    setCustomTimestamp(null);
+    setRunTrace([]);
+    if (next === "history") {
+      fetch(`${API}/play/fine/stop`, { method: "POST" }).catch(() => {});
+      setFineNow(null);
+      setOverrides({});
+      setDeltas(ZERO_DELTAS);
+      setRecovery(0);
+      setRunMode("history");
+      return;
+    }
+    if (next === "autopilot") {
+      setOverrides({});
+      setDeltas(ZERO_DELTAS);
+      setRecovery(0);
+      const synthetic = datasets.find((d) => d.origin === "synthetic" || d.id === "synthetic-plant-bf1");
+      if (synthetic && activeDataset?.id !== synthetic.id) {
+        await fetch(`${API}/datasets/select`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dataset_id: synthetic.id }),
+        });
+        await fetch(`${API}/play/fine/start`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "autopilot", target_production: Number(requiredProd) || 4500 }),
+        });
+        setRunMode("autopilot");
+        loadAll(6, requiredProd);
+        return;
+      }
+      await fetch(`${API}/play/fine/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "autopilot", target_production: Number(requiredProd) || 4500 }),
+      });
+      setRunMode("autopilot");
+      return;
+    }
+    const golden = await fetch(`${API}/golden-ranges?target_production=${Number(requiredProd) || 4500}`).then((r) => r.json());
+    const held = {};
+    Object.values(golden.ranges || {}).forEach((g) => {
+      if (g.role === "manipulated" && g.golden_center != null) held[g.tag] = Number(g.golden_center);
+    });
+    setDeltas(ZERO_DELTAS);
+    setOverrides(held);
+    setRecovery(100);
+    await fetch(`${API}/play/fine/start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode: "goal", target_production: Number(requiredProd) || 4500 }),
+    });
+    setRunMode("goal");
+  }
+
   function jumpToHistoricalEpisode(epTime, topCauseTag) {
-    setPlaying(false);
+    setRunMode(null);
     setDeltas(ZERO_DELTAS);
     setOverrides({});
     setCustomTimestamp(epTime);
@@ -504,8 +695,8 @@ export default function TwinWorkbench() {
                 <div className="golden-target-inputs">
                   <input
                     type="number"
-                    min="2500"
-                    max="5800"
+                    min="1500"
+                    max="16000"
                     step="50"
                     value={requiredProd}
                     onChange={(e) => {
@@ -515,7 +706,7 @@ export default function TwinWorkbench() {
                     }}
                   />
                   <em>t/day</em>
-                  {[3800, 4300, 4500, 4850].map((preset) => (
+                  {[4500, 6500, 8000, 10000].map((preset) => (
                     <button
                       key={preset}
                       type="button"
@@ -530,6 +721,9 @@ export default function TwinWorkbench() {
                   ))}
                 </div>
               </label>
+              <p className="muted" style={{ margin: "0.35rem 0 0" }}>
+                Furnace class {furnaceClass(requiredProd).name} · assumed working volume {furnaceClass(requiredProd).volume} m³ · 2.2 t/m³·day
+              </p>
             </div>
           </div>
 
@@ -795,9 +989,9 @@ export default function TwinWorkbench() {
               {optResult && (
                 <div className="opt-results">
                   <p className="status">
-                    Status <b className={optResult.feasible ? "ok" : "not"}>{optResult.status}</b> | Achieved{" "}
+                    Status <b className={optResult.feasible ? "ok" : "not"}>{optResult.status}</b> | {optResult.furnace_class?.name || furnaceClass(optTarget.prod).name} furnace | Achieved{" "}
                     <b>{optResult.achieved_production} t/d</b> at <b>{optResult.achieved_si}% Si</b> | Binding ceiling{" "}
-                    {optResult.binding_ceiling}
+                    {optResult.binding_ceiling} ({optResult.max_feasible_production} t/d)
                   </p>
                   <table>
                     <thead>
@@ -1054,6 +1248,66 @@ export default function TwinWorkbench() {
 
         {/* Center Stage: 3D Cutaway + Stave Radar + Time Scrubber + 24h Propagation Sparklines */}
         <div className="center-stage">
+          {runMode ? (
+            <div className="play-layout">
+            <div className="play-stats-stage">
+              <p className="run-caption">
+                {runMode === "history" && `${paused ? "Paused · " : ""}Historical replay · ${simResult.t} · recorded sensors, no adjustment`}
+                {runMode === "autopilot" && `${paused ? "Paused · " : ""}Autopilot · own flow ${fineNow?.t || "—"} · T+${fineMeta?.sim_s ?? 0}s · ring ${fineMeta?.count ?? 0}/${fineMeta?.capacity ?? 4096}`}
+                {runMode === "goal" && `${paused ? "Paused · " : ""}Goal test · own flow ${fineNow?.t || "—"} · T+${fineMeta?.sim_s ?? 0}s · ring ${fineMeta?.count ?? 0}/${fineMeta?.capacity ?? 4096}`}
+              </p>
+              {runTrace.length > 1 && <RunTrace points={runTrace} />}
+              {runMode === "autopilot" && (
+                <div className="ap-levers">
+                  <p className="gf-kicker">Your levers · autopilot moves the others</p>
+                  {fineLevers.map((lever) => (
+                    <label key={lever.tag}>
+                      <span>{lever.tag}{lever.held ? " · held" : ""}</span>
+                      <input
+                        type="range"
+                        min={lever.min}
+                        max={lever.max}
+                        step={(lever.max - lever.min) / 80}
+                        value={lever.value}
+                        onChange={(e) => {
+                          const value = Number(e.target.value);
+                          setFineLevers((prev) => prev.map((item) => (item.tag === lever.tag ? { ...item, value, held: true } : item)));
+                          fetch(`${API}/play/fine/hold`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ tag: lever.tag, value }),
+                          }).catch(() => {});
+                        }}
+                      />
+                      <b>{Number(lever.value).toFixed(lever.tag === "R" || lever.tag === "Pt" ? 2 : 0)}</b>
+                    </label>
+                  ))}
+                </div>
+              )}
+              <ParameterStats
+                liveSensors={simResult.parameters}
+                recovery={runMode === "history" ? 0 : recovery}
+                onRecovery={runMode === "history" ? null : applyRecovery}
+                caption={runMode === "history" ? "Recorded hour" : runMode === "goal" ? "Held toward the production goal · 1 s" : "Autopilot · 1 s"}
+                fineNow={fineNow}
+              />
+            </div>
+            <aside className="run-warnings" aria-live="polite">
+              <p className="gf-kicker">Warnings</p>
+              <p className="muted">{simResult.t}</p>
+              {(simResult.parameters || []).filter((p) => p.simulated_golden_status && p.simulated_golden_status !== "in_golden").slice(0, 12).map((p) => (
+                <article key={p.tag} className={`run-warn run-warn-${p.simulated_golden_status}`}>
+                  <b>{p.label}</b>
+                  <span>{p.simulated_golden_status === "below_golden" ? "below" : "above"} · {p.simulated} {p.unit}</span>
+                  <small>{p.golden_warning || p.baseline_golden_warning || ""}</small>
+                </article>
+              ))}
+              {(simResult.parameters || []).every((p) => !p.simulated_golden_status || p.simulated_golden_status === "in_golden") && (
+                <p className="muted">No tag is outside its golden band.</p>
+              )}
+            </aside>
+            </div>
+          ) : (
           <div className="canvas-holder">
             <TwinCanvas
               simState={simState}
@@ -1079,7 +1333,10 @@ export default function TwinWorkbench() {
               </button>
             </div>
           </div>
+          )}
 
+          {!runMode && (
+          <>
           {/* Radial Stave & Offtake Anomaly Mini-Map for instant peripheral issue spotting */}
           <div className="stave-radar-strip">
             <div className="stave-group-box">
@@ -1137,19 +1394,37 @@ export default function TwinWorkbench() {
               </div>
             </div>
           </div>
+          </>
+          )}
 
           <div className="transport-bar">
-            <button type="button" onClick={() => setPlaying((p) => !p)}>
-              {playing ? "Pause Replay" : "Play History"}
-            </button>
+            {[
+              ["history", "Play history"],
+              ["autopilot", "Autopilot"],
+              ["goal", "Goal test"],
+            ].map(([id, label]) => (
+              <button key={id} type="button" className={runMode === id ? "primary-btn" : ""} onClick={() => beginRun(id)}>
+                {runMode === id ? "Stop" : label}
+              </button>
+            ))}
+            {runMode && (
+              <button type="button" onClick={() => setPaused((v) => !v)}>
+                {paused ? "Resume" : "Pause"}
+              </button>
+            )}
+            {(runMode === "history" || runMode === "goal") && (
             <label>
               Speed
-              <input type="range" min="1" max="16" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
+              <input type="range" min="1" max="8" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
             </label>
+            )}
+            {!runMode && (
             <label>
               Cutaway
               <input type="range" min="0.05" max="1" step="0.02" value={open} onChange={(e) => setOpen(Number(e.target.value))} />
             </label>
+            )}
+            {!runMode && (
             <input
               className="scrub"
               type="range"
@@ -1157,13 +1432,14 @@ export default function TwinWorkbench() {
               max={Math.max(0, frames.length - 1)}
               value={index}
               onChange={(e) => {
-                setPlaying(false);
                 setCustomTimestamp(null);
                 setIndex(Number(e.target.value));
               }}
             />
+            )}
           </div>
 
+          {!runMode && (
           <div className="trajectory-strip">
             <Sparkline24h
               trajectory={simResult.trajectory_24h}
@@ -1202,6 +1478,7 @@ export default function TwinWorkbench() {
               color="var(--fault)"
             />
           </div>
+          )}
         </div>
 
         {/* Right Column: Searchable, Risk-Sorted 41-Sensor Matrix with Golden Ranges */}

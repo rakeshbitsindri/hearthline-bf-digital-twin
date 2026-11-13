@@ -16,7 +16,8 @@ This matrix maps proposed claim limitations to the written description, figures,
 | Zero-change identity | US 7.10; India 7.8 | FIG. 6 (616) | Fixed anchor plus baseline-preserving final state | `test_zero_change_identity_nothing_moves` |
 | Exact pressure conservation | US 7.10; India 7.8 | FIG. 6 (616) | `dP = dPu + dPl`, Ph response treatment | Pressure identity tests |
 | Derivative-preserving soft saturation | US 7.9; India 7.8 | FIG. 6 (610) | `_soft_limit` | `test_soft_limit_keeps_downstream_response_alive_at_a_ceiling` |
-| Separate forecast and decision residuals | US 7.11; India 7.7 | FIG. 1 (120, 122) | Architecture and forecast model; decision residual partially implemented as constrained Jacobian | **Disclosure support stronger than current production implementation; keep narrow/dependent** |
+| Fixed baseline sensor anchor and pressure identity inside the independent method claim | US 7.10 and amended claim 1; India 7.8 and amended claim 1 | FIG. 6 | `physics_bias`, `dP = dPu + dPl` | `test_physics_is_reconciled_onto_measured_sensors` |
+| Separate forecast and decision residuals | US 7.11; dependent claim 10; India dependent treatment | FIG. 1 (120, 122) | Forecast model plus lag-aligned Jacobian. Full backdoor, g-computation, and double machine learning are not deployed. | Dependent only. Do not recite the three estimators as implemented. |
 | Joint Mahalanobis envelope | US 7.12; India 7.9 | FIG. 7 (128) | `_envelope_distribution`, `evaluate_density_envelope` | `test_trl7_harness_rbac_sha256_audit_sse_and_mahalanobis_envelope` |
 | Local step trust region | US 7.12; India 7.9 | FIG. 7 (128) | `trust_step_distance`, `trust_region_ok` | Same envelope test |
 | Five physical productivity ceilings | US 7.13; India 7.9 | FIG. 7 (130) | `compute_physics_state` ceilings and binding ceiling | API responses and optimization tests |

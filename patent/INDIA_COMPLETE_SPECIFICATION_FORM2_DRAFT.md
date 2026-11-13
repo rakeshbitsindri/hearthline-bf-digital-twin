@@ -6,7 +6,7 @@
 
 ## Title
 
-**LAG-AWARE ADVISORY DIGITAL TWIN FOR DIAGNOSING BLAST-FURNACE PRODUCTION SHORTFALLS**
+**METHOD OF IDENTIFYING AN UNMEASURED CAUSE OF A BLAST-FURNACE PRODUCTION SHORTFALL**
 
 ## Applicant(s)
 
@@ -210,6 +210,10 @@ The method has been demonstrated on a public running-plant blast-furnace archive
 
 At a qualified on-wind hour, a combined increase in blast, oxygen, and hot-blast temperature can exceed the regularized Mahalanobis envelope. In that case, the apparatus blocks routine advisory output and produces an engineering-trial dossier. With no manipulated-input change, sampled records show zero simulated drift and exact pressure-split reconciliation.
 
+A comparative test of the saturation function on a nominal pressure-drop interval of 1.20 to 1.70, with softness equal to 0.08 times that interval, showed that hard clipping sets the local derivative to zero at 1.72, while the claimed saturation returns 1.7185 with a local derivative of about 0.79. At 1.74 the soft output is 1.7305 with a local derivative of about 0.42, whereas hard clipping remains 1.7000 with derivative zero. This is the technical effect relied on for non-zero response sensitivity at a furnace operating limit.
+
+Preferred transport-delay priors, replaced by plant-calibrated delays when identified, are: top pressure 0.6 hour; blast moisture 0.8 hour; blast volume and oxygen 1.0 hour; hot-blast temperature 1.5 hours; pulverized coal 2.5 hours; sinter reduction-degradation index 4.5 hours; ore/coke ratio and burden iron 6.0 hours; charged coke rate 6.5 hours; coke strength after reaction 7.0 hours; and alkali and zinc inputs 12 hours.
+
 ## 9. Best method of performing the invention
 
 The best method known at filing is:
@@ -233,7 +237,57 @@ The invention is applicable to iron and steel plants operating blast furnaces an
 
 ## 11. Claims
 
-Claims for India are provided in `INDIA_CLAIMS_DRAFT.md` and shall be inserted here after review by a registered Indian patent agent.
+The following claims are the claims of this complete specification. Bracketed applicant and inventor fields on the cover must be completed, and a registered Indian patent agent must settle Forms 1, 3, 5, and 26, before filing. This draft is not legal advice and is not a filed application.
+
+## I/We claim:
+
+1. **A method for identifying an unmeasured physical cause of a hot-metal production shortfall in an iron blast furnace, performed by a furnace-monitoring apparatus coupled to a plurality of blast-furnace sensors, the method comprising:**
+
+   receiving, through an industrial historian interface restricted to read services, time-series physical measurements comprising manipulated furnace inputs, material disturbances, furnace state responses, and hot-metal production or quality outcomes;
+
+   assigning each physical measurement to one mutually exclusive causal role comprising manipulated input, disturbance, furnace state response, outcome, or derived latent state;
+
+   for a required hot-metal production rate, selecting a historical cohort of qualified on-wind furnace intervals having production within a tolerance of the required hot-metal production rate and pressure drop below a permeability criterion, and generating from the historical cohort a lower operating value, center operating value, and upper operating value for each of a plurality of furnace tags;
+
+   shifting at least one of the lower, center, or upper operating values according to a physical furnace sensitivity and a difference between the required hot-metal production rate and production represented by the historical cohort, thereby producing a production-conditioned operating band;
+
+   converting each of the plurality of furnace tags at a query time into a lag-active physical value by applying a respective temporal kernel representing a gas-flow delay, injectant delay, descending-burden delay, thermal delay, or accumulated-inventory delay within the blast furnace;
+
+   detecting an unchanged-input shortfall in which a measured or reconciled production value is below the required hot-metal production rate or below a preceding rolling production reference while a selected plurality of manipulated inputs remain within their corresponding production-conditioned operating bands;
+
+   in response to the unchanged-input shortfall, identifying an unmeasured furnace condition as the physical cause by a deviation of the lag-active physical value of a measured disturbance or furnace state response from both its production-conditioned operating band and a preceding rolling reference of the corresponding furnace tag, the unmeasured furnace condition being at least one of an alkali or zinc accumulation, a burden-permeability loss, a cohesive-zone shift, a circumferential gas maldistribution, or a hearth-drainage restriction;
+
+   testing a candidate recovery with a reduced-order blast-furnace material-and-energy calculation, including calculating an additive anchor bias between a measured sensor response and a free-running physical-model output at a baseline state, holding said additive anchor bias fixed during the test, and enforcing a physical identity in which a simulated total furnace pressure drop equals an upper-furnace pressure drop plus a lower-furnace pressure drop;
+
+   evaluating the counterfactual recovery trajectory against a joint multi-parameter historical operating-density envelope, a step trust region, and a plurality of physical blast-furnace productivity ceilings; and
+
+   displaying, through an operator advisory interface, either (i) a recovery advisory when the counterfactual recovery trajectory remains within said envelope, trust region, and productivity ceilings, or (ii) an engineering-trial dossier while withholding the recovery advisory when at least one of said envelope, trust region, or productivity ceilings is violated.
+
+2. The method as claimed in claim 1, wherein the industrial historian interface permits only an HTTP read operation, an OPC-UA Read service, an OPC-UA HistoryRead service, or reading an immutable historian-export file, and rejects historian write, OPC method-call, SQL mutation, programmable-logic-controller write, distributed-control-system setpoint, and furnace-actuator operations.
+
+3. The method as claimed in claim 1, wherein, when the counterfactual recovery trajectory uses a manipulated-input vector equal to a current manipulated-input vector, each anchored simulated response equals the corresponding measured baseline response within a numerical tolerance.
+
+4. The method as claimed in claim 1, wherein the reduced-order blast-furnace physical model applies a monotonic continuously differentiable saturation function outside a nominal physical interval, thereby retaining a non-zero response sensitivity at a furnace operating limit.
+
+5. The method as claimed in claim 1, wherein the joint multi-parameter historical operating-density envelope is a regularized Mahalanobis ellipsoid fitted to qualified on-wind manipulated-input vectors and the step trust region is a Mahalanobis distance from a current manipulated-input vector.
+
+6. The method as claimed in claim 1, wherein the plurality of physical blast-furnace productivity ceilings includes at least three selected from tuyere oxygen-carbon stoichiometry, packed-bed pressure-drop permeability, bosh-gas flooding or fluidization, top-gas thermal or acid-dewpoint condition, and hearth coke-bed drainage, and wherein a lowest ceiling is displayed as a binding ceiling.
+
+7. The method as claimed in claim 1, further comprising classifying each generated result as measured-anchored, physics-estimated, assumption-dependent, response-only, not-qualified, not-identifiable, or not-testable, and withholding an absolute latent-state value while continuing to display a differential response when a required sensor is unavailable.
+
+8. The method as claimed in claim 1, further comprising storing an operator acceptance or rejection in an append-only cryptographic hash chain stamped with a model version and storing a later indication of plant execution in a separate post-hoc field without altering the operator acceptance or rejection.
+
+9. **A blast-furnace advisory apparatus comprising:**
+
+   a plurality of industrial data inputs receiving physical blast-furnace sensor measurements;
+
+   a read-only historian interface configured to receive said measurements while lacking a write service to a historian, programmable logic controller, distributed control system, or furnace actuator;
+
+   one or more processors; and
+
+   a memory storing executable instructions configured to cause the apparatus to perform the method of any one of claims 1 to 8.
+
+10. The blast-furnace advisory apparatus as claimed in claim 9, further comprising a regime gate configured to suppress a recovery advisory during off-wind operation, banking, blow-in, shutdown, maintenance, stale-source operation, severe instability, or an unqualified regime.
 
 ## 12. Abstract
 

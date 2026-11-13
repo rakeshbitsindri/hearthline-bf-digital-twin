@@ -11,6 +11,7 @@ const links = [
   ["/knowledge", "Knowledge & Plant Data"],
   ["/govern", "TRL & Govern"],
   ["/pitch", "Interactive Pitch"],
+  ["/visits", "Visits"],
 ];
 
 export const THEMES = [

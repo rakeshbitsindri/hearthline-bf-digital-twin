@@ -243,8 +243,50 @@ def _soft_limit(x: float, lo: float, hi: float, softness: float = 0.0) -> float:
     return float(x)
 
 
-def compute_physics_state(state: dict, working_volume: float = 2000.0) -> dict:
+# Industry size classes from hot-metal demand. Productivity 2.2 t/(m³·day) is inside the
+# 2.0–2.5 working-volume band in knowledge/02-derived-indices.md. Volume and blast scale are
+# assumed configuration, not a measured hearth. The medium class is the 2,000 m³ reference.
+_FURNACE_CLASSES = (
+    ("small", "Small", 0.0, 2500.0),
+    ("medium", "Medium", 2500.0, 5500.0),
+    ("large", "Large", 5500.0, 8000.0),
+    ("very_large", "Very large", 8000.0, 12000.0),
+    ("super_large", "Super-large", 12000.0, 1.0e9),
+)
+_REFERENCE_VOLUME_M3 = 2000.0
+_CLASS_PRODUCTIVITY = 2.2
+_MAX_BUILT_VOLUME_M3 = 5800.0
+
+
+def furnace_class_for_demand(target_t_d: float) -> dict:
+    """Pick a furnace size class from demanded hot metal and scale the reference furnace."""
+    demand = max(0.0, float(target_t_d))
+    class_id, name = "medium", "Medium"
+    for cid, label, lo, hi in _FURNACE_CLASSES:
+        if lo <= demand < hi:
+            class_id, name = cid, label
+            break
+    if class_id == "medium":
+        volume = _REFERENCE_VOLUME_M3
+    else:
+        volume = min(_MAX_BUILT_VOLUME_M3, max(350.0, demand / _CLASS_PRODUCTIVITY))
+    scale = volume / _REFERENCE_VOLUME_M3
+    return {
+        "id": class_id,
+        "name": name,
+        "demanded_t_d": round(demand, 1),
+        "working_volume_m3": round(volume, 1),
+        "size_scale": round(scale, 4),
+        "productivity_basis_t_m3_d": _CLASS_PRODUCTIVITY,
+        "evidence": "assumed",
+        "citation": "knowledge/02-derived-indices.md productivity 2.0–2.5 t/(m³·day); volume capped at 5,800 m³",
+        "above_built_practice": bool(demand / _CLASS_PRODUCTIVITY > _MAX_BUILT_VOLUME_M3),
+    }
+
+
+def compute_physics_state(state: dict, working_volume: float = 2000.0, size_scale: float = 1.0) -> dict:
     """Compute metallurgical physics quantities from current + assumed parameters."""
+    scale = max(0.2, float(size_scale))
     fb = max(500.0, float(state.get("Fb", 3500.0)))
     th = float(state.get("Th", 1100.0))
     fo = max(0.0, float(state.get("Fo", 18000.0)))
@@ -298,7 +340,7 @@ def compute_physics_state(state: dict, working_volume: float = 2000.0) -> dict:
 
     # Upper & Lower Pressure Drop via Ergun + Fines/Condensation modifiers
     # Base Ergun scales with (bosh_gas)^1.7 / (1 + 0.28 * Pt)
-    gas_factor = ((bosh_gas_min / 4450.0) ** 1.7) * (2.4 / (1.0 + pt))
+    gas_factor = ((bosh_gas_min / (4450.0 * scale)) ** 1.7) * (2.4 / (1.0 + pt))
     fines_penalty_upper = 1.0 + 0.018 * (rdi - 26.0) + 0.0035 * (cond_idx - 25.0) - (0.06 if center_coke_on else 0.0)
     fines_penalty_lower = 1.0 + 0.0016 * (pci - 115.0) - 0.015 * (csr - 64.0) + 0.0045 * (cond_idx - 25.0)
 
@@ -347,7 +389,7 @@ def compute_physics_state(state: dict, working_volume: float = 2000.0) -> dict:
     # Adjust for Fe grade and permeability/flooding restriction above dP = 1.53 kgf/cm2
     fe_factor = (fe_grade / 58.5) ** 0.85
     perm_penalty = max(0.0, (dp_phys - 1.53) * 620.0) + max(0.0, (cond_idx - 35.0) * 4.5)
-    prod_phys = _soft_limit(prod_stoich * fe_factor - perm_penalty, 1200.0, 6500.0)
+    prod_phys = _soft_limit(prod_stoich * fe_factor - perm_penalty, 1200.0 * scale, 6500.0 * scale)
 
     # Top gas temperature (°C)
     t_top_mean = _soft_limit(154.0 + 0.035 * (fb - 3550.0) - 22.0 * (r_oc - 4.0) - 0.14 * (oe_pct - 4.5) + 0.45 * (eff_moisture - 16.0), 75.0, 320.0)
@@ -355,10 +397,10 @@ def compute_physics_state(state: dict, working_volume: float = 2000.0) -> dict:
     # Five productivity ceilings (t/day)
     ceilings = {
         "tuyere_stoichiometry": round(float(prod_stoich * fe_factor), 1),
-        "permeability_dp_limit": round(float(4500.0 * ((1.62 / max(0.6, dp_phys)) ** 0.58)), 1),
-        "flooding_fluidization": round(float(4650.0 * (4600.0 / max(2500.0, bosh_gas_min))), 1),
-        "top_gas_dewpoint": round(float(4800.0 if t_top_mean >= 105.0 else 4800.0 - (105.0 - t_top_mean) * 38.0), 1),
-        "hearth_drainage": round(float(4750.0 - max(0.0, (64.0 - csr) * 45.0)), 1),
+        "permeability_dp_limit": round(float(4500.0 * scale * ((1.62 / max(0.6, dp_phys)) ** 0.58)), 1),
+        "flooding_fluidization": round(float(4650.0 * scale * ((4600.0 * scale) / max(2500.0 * scale, bosh_gas_min))), 1),
+        "top_gas_dewpoint": round(float((4800.0 if t_top_mean >= 105.0 else 4800.0 - (105.0 - t_top_mean) * 38.0) * scale), 1),
+        "hearth_drainage": round(float((4750.0 - max(0.0, (64.0 - csr) * 45.0)) * scale), 1),
     }
     binding_ceiling = min(ceilings, key=ceilings.get)
 
@@ -387,6 +429,7 @@ def compute_physics_state(state: dict, working_volume: float = 2000.0) -> dict:
         "ceilings": ceilings,
         "binding_ceiling": binding_ceiling,
         "max_feasible_production": ceilings[binding_ceiling],
+        "size_scale": round(scale, 4),
     }
 
 
@@ -1305,6 +1348,11 @@ def simulate_coupled(
             # Clip obvious sensor sentinel (e.g. 3311 C) to mean so baseline simulation is physical
             if tag.startswith("Tp") or tag.startswith("Tt"):
                 val = float(np.clip(val, 20.0, 1050.0))
+            # Some uploads store hot-metal tonnes per hour. The twin's production unit is t/day.
+            if tag == "Production" and "Production" in hours.columns:
+                med = float(pd.to_numeric(hours["Production"], errors="coerce").median())
+                if 0 < med < 600:
+                    val *= 24.0
             base_state[tag] = val
             measured_tags.append(tag)
         elif "default_assumed" in item:
@@ -1314,13 +1362,15 @@ def simulate_coupled(
             base_state[tag] = float(learned["means"].get(tag, (item["min"] + item["max"]) / 2.0))
             assumed_tags.append(tag)
 
-    working_volume = float(meta.get("working_volume_m3", 2000.0))
+    furnace_class = furnace_class_for_demand(target_production)
+    working_volume = float(furnace_class["working_volume_m3"])
+    size_scale = float(furnace_class["size_scale"])
     regime = operating_regime(base_state.get("Fb", 0.0), blast_reference(hours))
 
     # Free-running physics, then reconcile onto the sensors. The bias is computed once at the
     # baseline and reused for the proposal, so the response delta stays pure physics while the
     # absolute numbers agree with the instruments the plant actually reads.
-    base_phys_free = compute_physics_state(base_state, working_volume)
+    base_phys_free = compute_physics_state(base_state, working_volume, size_scale)
     measured_anchor = {k: base_state[k] for k in ANCHORABLE if k in measured_tags}
     bias = physics_bias(base_phys_free, measured_anchor)
     base_phys = apply_bias(base_phys_free, bias, working_volume)
@@ -1345,7 +1395,7 @@ def simulate_coupled(
         prop_state[col] = new_val
         input_deltas[col] = new_val - b_val
 
-    prop_phys_free = compute_physics_state(prop_state, working_volume)
+    prop_phys_free = compute_physics_state(prop_state, working_volume, size_scale)
     prop_phys = apply_bias(prop_phys_free, bias, working_volume)
 
     # Compute Data-Driven response delta from learned Jacobian
@@ -1652,20 +1702,29 @@ def optimize_for_target(
     Constrained inverse optimization: find operating parameters (Fb, Th, Fo, Pt, R, PCI, CokeRate, BlastMoisture)
     that hit `target_production` and `target_si` while respecting permeability (dP <= max_dp) and RAFT bounds.
     """
-    sim0 = simulate_coupled(when, mode="hybrid")
+    sim0 = simulate_coupled(when, mode="hybrid", target_production=target_production)
     base = sim0["baseline_state"]
-    meta = active_dataset_meta()
-    wv = float(meta.get("working_volume_m3", 2000.0))
+    furnace_class = furnace_class_for_demand(target_production)
+    wv = float(furnace_class["working_volume_m3"])
+    scale = float(furnace_class["size_scale"])
+
+    def _box(tag: str, lo: float, hi: float, current: float, scale_wind: bool) -> tuple:
+        if scale_wind:
+            lo, hi = lo * scale, hi * scale
+            current = min(hi, max(lo, float(current) * scale))
+        else:
+            current = min(hi, max(lo, float(current)))
+        return (tag, lo, hi, current)
 
     decision_Load = [
-        ("Fb", 2600.0, 4250.0, base["Fb"]),
-        ("Th", 980.0, 1240.0, base["Th"]),
-        ("Fo", 5000.0, 30000.0, base["Fo"]),
-        ("Pt", 1.15, 1.72, base["Pt"]),
-        ("R", 3.30, 4.65, base["R"]),
-        ("PCI", 75.0, 195.0, base["PCI"]),
-        ("CokeRate", 285.0, 435.0, base["CokeRate"]),
-        ("BlastMoisture", 8.0, 32.0, base["BlastMoisture"]),
+        _box("Fb", 2600.0, 4250.0, base["Fb"], True),
+        _box("Th", 980.0, 1240.0, base["Th"], False),
+        _box("Fo", 5000.0, 30000.0, base["Fo"], True),
+        _box("Pt", 1.15, 1.72, base["Pt"], False),
+        _box("R", 3.30, 4.65, base["R"], False),
+        _box("PCI", 75.0, 195.0, base["PCI"], False),
+        _box("CokeRate", 285.0, 435.0, base["CokeRate"], False),
+        _box("BlastMoisture", 8.0, 32.0, base["BlastMoisture"], False),
     ]
 
     x0 = np.array([item[3] for item in decision_Load], dtype=float)
@@ -1677,7 +1736,7 @@ def optimize_for_target(
         for idx, (tag, _, _, _) in enumerate(decision_Load):
             cand[tag] = float(x[idx])
         # Keep ore/coke ratio and coke+PCI coupled reasonably
-        return compute_physics_state(cand, wv)
+        return compute_physics_state(cand, wv, scale)
 
     def loss_fn(x: np.ndarray) -> float:
         phys = eval_candidate(x)
@@ -1742,6 +1801,7 @@ def optimize_for_target(
         "achieved_fuel_rate": opt_phys["FuelRate"],
         "binding_ceiling": opt_phys["binding_ceiling"],
         "max_feasible_production": opt_phys["max_feasible_production"],
+        "furnace_class": furnace_class,
         "ceilings": opt_phys["ceilings"],
         "recommendations": recommendations,
         "recommended_overrides": {k: round(v, 3) for k, v in best_overrides.items()},

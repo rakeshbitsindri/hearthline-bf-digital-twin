@@ -6,6 +6,8 @@ const BASE_PATH = process.env.NEXT_BASE_PATH || "";
 
 const nextConfig = {
   reactStrictMode: true,
+  // Static Pages builds must not replace the .next directory the live server is running.
+  distDir: STATIC_EXPORT ? ".next-export" : ".next",
   ...(STATIC_EXPORT
     ? {
         output: "export",
@@ -17,6 +19,7 @@ const nextConfig = {
         async rewrites() {
           return [
             { source: "/twin-api/:path*", destination: `${API_ORIGIN}/:path*` },
+            { source: "/visits/:path*", destination: `${API_ORIGIN}/visits/:path*` },
             { source: "/pitch", destination: "/pitch/index.html" },
             { source: "/pitch/", destination: "/pitch/index.html" },
           ];
